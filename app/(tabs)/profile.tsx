@@ -23,6 +23,12 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     (async () => {
+      const cached = await getDriver() as Driver | null;
+      if (cached) {
+        setDriver(cached);
+        setName(cached.name);
+        setPhone(cached.phone);
+      }
       try {
         const res = await getProfile();
         if (res.success) {
@@ -31,14 +37,7 @@ export default function ProfileScreen() {
           setPhone(res.driver.phone);
           await saveDriver(res.driver);
         }
-      } catch {
-        const d = await getDriver() as Driver | null;
-        if (d) {
-          setDriver(d);
-          setName(d.name);
-          setPhone(d.phone);
-        }
-      }
+      } catch {}
     })();
   }, []);
 
@@ -60,15 +59,10 @@ export default function ProfileScreen() {
     setSaving(false);
   };
 
-  const handleLogout = async () => {
-    Alert.alert("Logout", "Are you sure?", [
-      { text: "Cancel" },
-      {
-        text: "Logout", style: "destructive",
-        onPress: async () => { await clearAuth(); router.replace("/login"); },
-      },
-    ]);
-  };
+  const handleLogout = () => Alert.alert("Logout", "Are you sure?", [
+    { text: "Cancel" },
+    { text: "Logout", style: "destructive", onPress: async () => { await clearAuth(); router.replace("/login"); } },
+  ]);
 
   const rows = [
     { icon: "person-outline" as const, label: "Name", value: driver?.name || "", editable: true },
@@ -76,6 +70,7 @@ export default function ProfileScreen() {
     { icon: "call-outline" as const, label: "Phone", value: driver?.phone || "", editable: true },
     { icon: "shield-checkmark-outline" as const, label: "Status", value: (driver?.status || "").toUpperCase(), editable: false },
   ];
+
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>

@@ -27,6 +27,11 @@ export default function DashboardScreen() {
   useLocationTracking(available);
 
   const load = async () => {
+    const cached = await getDriver() as Driver | null;
+    if (cached && !driver) {
+      setDriver(cached);
+      setAvailable(cached.isAvailable || false);
+    }
     try {
       const res = await getProfile();
       if (res.success) {
@@ -34,15 +39,11 @@ export default function DashboardScreen() {
         setAvailable(res.driver.isAvailable || false);
         await saveDriver(res.driver);
       }
-    } catch {
-      const d = await getDriver() as Driver | null;
-      if (d) { setDriver(d); setAvailable(d.isAvailable || false); }
-    }
+    } catch {}
     try {
       const active = await getBookings("active");
       const completed = await getBookings("completed");
-      const assigned = await getBookings("assigned");
-      const all = [...(active.bookings || []), ...(completed.bookings || []), ...(assigned.bookings || [])];
+      const all = [...(active.bookings || []), ...(completed.bookings || [])];
       setTotalJobs(all.length);
       const today = new Date().toLocaleDateString("en-GB");
       setTodayJobs(all.filter((b: { date: string }) => b.date === today).length);
@@ -89,10 +90,10 @@ export default function DashboardScreen() {
   const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
   const stats = [
-    { icon: "today-outline" as const, label: "Today", value: `${todayJobs} Jobs`, color: COLORS.gold },
+    { icon: "today-outline" as const, label: "Today", value: `${todayJobs} Bookings`, color: COLORS.gold },
     { icon: "cash-outline" as const, label: "Earnings", value: "£0.00", color: COLORS.crimson },
     { icon: "star-outline" as const, label: "Rating", value: "5.0", color: COLORS.orange },
-    { icon: "car-outline" as const, label: "Total Jobs", value: `${totalJobs}`, color: COLORS.green },
+    { icon: "car-outline" as const, label: "Total Bookings", value: `${totalJobs}`, color: COLORS.green },
   ];
 
   return (

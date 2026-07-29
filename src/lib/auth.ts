@@ -15,11 +15,19 @@ export async function removeToken() {
   await SecureStore.deleteItemAsync(TOKEN_KEY);
 }
 
-export async function saveDriver(driver: object) {
-  await SecureStore.setItemAsync(DRIVER_KEY, JSON.stringify(driver));
+export async function saveDriver(driver: Record<string, unknown>) {
+  const slim = {
+    id: driver.id,
+    name: driver.name,
+    email: driver.email,
+    phone: driver.phone,
+    status: driver.status,
+    isAvailable: driver.isAvailable,
+  };
+  await SecureStore.setItemAsync(DRIVER_KEY, JSON.stringify(slim));
 }
 
-export async function getDriver(): Promise<object | null> {
+export async function getDriver(): Promise<Record<string, unknown> | null> {
   const data = await SecureStore.getItemAsync(DRIVER_KEY);
   return data ? JSON.parse(data) : null;
 }

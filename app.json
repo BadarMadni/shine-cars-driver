@@ -15,19 +15,33 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.shinecars.driver"
+      "bundleIdentifier": "com.shinecars.driver",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Shine Cars Driver needs your location so dispatchers can find and assign you nearby bookings.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Shine Cars Driver needs your location to track your position while on duty."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0F1629",
         "foregroundImage": "./assets/logo.png"
       },
-      "package": "com.shinecars.driver"
+      "package": "com.shinecars.driver",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       "expo-router",
       "expo-font",
       "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Shine Cars Driver needs your location so dispatchers can find and assign you nearby bookings.",
+          "locationAlwaysAndWhenInUsePermission": "Shine Cars Driver needs your location to track your position while on duty."
+        }
+      ],
       [
         "expo-image-picker",
         {
@@ -35,6 +49,9 @@
           "cameraPermission": "Allow Shine Cars Driver to use your camera to capture documents."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {}
+    }
   }
 }

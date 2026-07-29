@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   View, Text, StyleSheet, ScrollView, RefreshControl,
   TouchableOpacity, ActivityIndicator, Platform,
@@ -7,6 +7,8 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/constants/theme";
 import { getBookings } from "@/src/lib/api";
+
+const POLL_INTERVAL = 10_000;
 
 interface Booking {
   id: string; name: string; phone: string;
@@ -34,8 +36,10 @@ export default function BookingsScreen() {
   const router = useRouter();
   const [filter, setFilter] = useState("assigned");
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [counts, setCounts] = useState({ assigned: 0, active: 0, completed: 0 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -45,7 +49,26 @@ export default function BookingsScreen() {
     setLoading(false);
   }, [filter]);
 
+  const loadCounts = useCallback(async () => {
+    try {
+      const [a, b, c] = await Promise.all([
+        getBookings("assigned"), getBookings("active"), getBookings("completed"),
+      ]);
+      setCounts({
+        assigned: a.bookings?.length || 0,
+        active: b.bookings?.length || 0,
+        completed: c.bookings?.length || 0,
+      });
+    } catch {}
+  }, []);
+
   useEffect(() => { setLoading(true); load(); }, [load]);
+
+  useEffect(() => {
+    loadCounts();
+    intervalRef.current = setInterval(() => { load(); loadCounts(); }, POLL_INTERVAL);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [load, loadCounts]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -58,15 +81,18 @@ export default function BookingsScreen() {
       <Text style={styles.title}>Bookings</Text>
 
       <View style={styles.tabs}>
-        {tabs.map((t) => (
-          <TouchableOpacity key={t.key} activeOpacity={0.7}
-            onPress={() => setFilter(t.key)}
-            style={[styles.tab, filter === t.key && styles.tabActive]}>
-            <Text style={[styles.tabText, filter === t.key && styles.tabTextActive]}>
-              {t.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {tabs.map((t) => {
+          const count = counts[t.key as keyof typeof counts] || 0;
+          return (
+            <TouchableOpacity key={t.key} activeOpacity={0.7}
+              onPress={() => setFilter(t.key)}
+              style={[styles.tab, filter === t.key && styles.tabActive]}>
+              <Text style={[styles.tabText, filter === t.key && styles.tabTextActive]}>
+                {t.label}{count > 0 ? ` (${count})` : ""}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}

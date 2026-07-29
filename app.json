@@ -28,7 +28,9 @@
       },
       "package": "com.shinecars.driver",
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "plugins": [
@@ -51,7 +53,11 @@
       ]
     ],
     "extra": {
-      "router": {}
-    }
+      "router": {},
+      "eas": {
+        "projectId": "443f5377-a4ae-47b2-9ffc-8a845bbba3c6"
+      }
+    },
+    "owner": "badarmadni"
   }
 }

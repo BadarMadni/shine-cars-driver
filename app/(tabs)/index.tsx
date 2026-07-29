@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import {
   View, Text, StyleSheet, Image, ScrollView, RefreshControl, Platform,
-  TouchableOpacity, ActivityIndicator,
+  TouchableOpacity, ActivityIndicator, Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
+import * as Notifications from "expo-notifications";
 import { COLORS } from "@/src/constants/theme";
 import { getDriver, saveDriver } from "@/src/lib/auth";
 import { getProfile, toggleAvailability, getBookings, savePushToken } from "@/src/lib/api";
@@ -49,10 +51,24 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     load();
-    registerForPushNotifications().then((token) => {
-      if (token) savePushToken(token);
-    });
+    requestPermissions();
   }, []);
+
+  const requestPermissions = async () => {
+    try {
+      const { status: locStatus } = await Location.requestForegroundPermissionsAsync();
+      if (locStatus !== "granted") {
+        Alert.alert("Location Required", "Please enable location access so dispatchers can find you.");
+      }
+    } catch {}
+    try {
+      const { status: notifStatus } = await Notifications.requestPermissionsAsync();
+      if (notifStatus === "granted") {
+        const token = await registerForPushNotifications();
+        if (token) savePushToken(token);
+      }
+    } catch {}
+  };
 
   const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 

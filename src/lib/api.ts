@@ -77,24 +77,24 @@ export async function savePushToken(pushToken: string) {
 
 export async function uploadDocument(
   type: string, uri: string, expiryDate: string
-) {
-  const raw = await getToken();
-  const token = raw?.trim();
-  const formData = new FormData();
-  formData.append("type", type);
-  formData.append("expiryDate", expiryDate);
+): Promise<{ success: boolean; document?: unknown; message?: string }> {
+  const token = await getToken();
+  if (!token) throw new Error("Not authenticated");
 
   const filename = uri.split("/").pop() || "document.jpg";
   const match = /\.(\w+)$/.exec(filename);
   const mimeType = match ? `image/${match[1]}` : "image/jpeg";
 
+  const formData = new FormData();
+  formData.append("type", type);
+  formData.append("expiryDate", expiryDate);
   formData.append("file", {
     uri, name: filename, type: mimeType,
   } as unknown as Blob);
 
+  formData.append("token", token);
   const res = await fetch(`${API_URL}/api/drivers/documents`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
     body: formData,
   });
   const data = await res.json();

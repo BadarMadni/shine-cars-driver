@@ -1,17 +1,30 @@
 import { Platform } from "react-native";
-import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Lazy-load expo-notifications — it crashes in Expo Go SDK 53+
+let Notifications: typeof import("expo-notifications") | null = null;
+
+async function getNotifications() {
+  if (!Notifications) {
+    try {
+      Notifications = await import("expo-notifications");
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+          shouldShowBanner: true,
+          shouldShowList: true,
+        }),
+      });
+    } catch (e) {
+      console.log("expo-notifications not available:", e);
+      return null;
+    }
+  }
+  return Notifications;
+}
 
 export async function registerForPushNotifications(): Promise<string | null> {
   if (!Device.isDevice) {
@@ -20,11 +33,14 @@ export async function registerForPushNotifications(): Promise<string | null> {
   }
 
   try {
-    const { status: existing } = await Notifications.getPermissionsAsync();
+    const notif = await getNotifications();
+    if (!notif) return null;
+
+    const { status: existing } = await notif.getPermissionsAsync();
     let finalStatus = existing;
 
     if (existing !== "granted") {
-      const { status } = await Notifications.requestPermissionsAsync();
+      const { status } = await notif.requestPermissionsAsync();
       finalStatus = status;
     }
 
@@ -34,9 +50,9 @@ export async function registerForPushNotifications(): Promise<string | null> {
     }
 
     if (Platform.OS === "android") {
-      await Notifications.setNotificationChannelAsync("default", {
+      await notif.setNotificationChannelAsync("default", {
         name: "default",
-        importance: Notifications.AndroidImportance.MAX,
+        importance: notif.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
       });
     }
@@ -44,7 +60,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
     const projectId = Constants.expoConfig?.extra?.eas?.projectId
       ?? Constants.easConfig?.projectId;
 
-    const tokenData = await Notifications.getExpoPushTokenAsync({
+    const tokenData = await notif.getExpoPushTokenAsync({
       projectId: projectId || undefined,
     });
 

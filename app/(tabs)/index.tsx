@@ -5,12 +5,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import * as Notifications from "expo-notifications";
 import { COLORS } from "@/src/constants/theme";
 import { getDriver, saveDriver } from "@/src/lib/auth";
 import { getProfile, toggleAvailability, getBookings, savePushToken } from "@/src/lib/api";
 import { useLocationTracking } from "@/src/hooks/useLocation";
-import { registerForPushNotifications } from "@/src/lib/notifications";
 
 interface Driver {
   name: string; status: string; isAvailable?: boolean;
@@ -63,11 +61,9 @@ export default function DashboardScreen() {
       }
     } catch {}
     try {
-      const { status: notifStatus } = await Notifications.requestPermissionsAsync();
-      if (notifStatus === "granted") {
-        const token = await registerForPushNotifications();
-        if (token) savePushToken(token);
-      }
+      const { registerForPushNotifications } = await import("@/src/lib/notifications");
+      const token = await registerForPushNotifications();
+      if (token) savePushToken(token);
     } catch {}
   };
 

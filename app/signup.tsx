@@ -7,7 +7,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/constants/theme";
 import { registerDriver } from "@/src/lib/api";
-import { saveToken, saveDriver } from "@/src/lib/auth";
+import { saveToken, saveDriver, clearAuth } from "@/src/lib/auth";
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -34,6 +34,7 @@ export default function SignupScreen() {
         password,
       });
       if (res.success) {
+        await clearAuth();
         await saveToken(res.token);
         await saveDriver(res.driver);
         router.replace("/documents");

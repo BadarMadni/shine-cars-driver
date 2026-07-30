@@ -4,11 +4,15 @@ const TOKEN_KEY = "driver_token";
 const DRIVER_KEY = "driver_data";
 
 export async function saveToken(token: string) {
-  await SecureStore.setItemAsync(TOKEN_KEY, token);
+  // Only keep valid JWT chars (base64url + dots)
+  await SecureStore.setItemAsync(TOKEN_KEY, token.replace(/[^A-Za-z0-9._\-]/g, ""));
 }
 
 export async function getToken(): Promise<string | null> {
-  return SecureStore.getItemAsync(TOKEN_KEY);
+  const raw = await SecureStore.getItemAsync(TOKEN_KEY);
+  if (!raw) return null;
+  // Only keep valid JWT chars — strips ANY invisible/control characters
+  return raw.replace(/[^A-Za-z0-9._\-]/g, "");
 }
 
 export async function removeToken() {

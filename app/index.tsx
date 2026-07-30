@@ -24,10 +24,12 @@ export default function SplashScreen() {
       const driver = await getDriver() as { status?: string } | null;
       if (!token) {
         router.replace("/login");
-      } else if (driver?.status === "pending") {
+      } else if (driver?.status === "pending" || driver?.status === "rejected") {
         router.replace("/pending");
-      } else {
+      } else if (driver?.status === "approved") {
         router.replace("/(tabs)");
+      } else {
+        router.replace("/documents");
       }
     }, 2000);
 

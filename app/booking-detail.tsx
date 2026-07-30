@@ -123,11 +123,11 @@ export default function BookingDetailScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView style={styles.container} contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled">
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive">
         <TouchableOpacity onPress={() => router.back()} style={styles.backRow}>
           <Ionicons name="arrow-back" size={20} color={COLORS.white} />
           <Text style={styles.backLabel}>Back</Text>
@@ -151,7 +151,7 @@ export default function BookingDetailScreen() {
 
         {isInProgress && <CompleteButton updating={updating} onComplete={handleComplete} />}
 
-        <View style={{ height: 30 }} />
+        <View style={{ height: isInProgress && isCash ? 200 : 30 }} />
       </ScrollView>
     </KeyboardAvoidingView>
   );

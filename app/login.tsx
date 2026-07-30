@@ -7,7 +7,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/constants/theme";
 import { loginDriver } from "@/src/lib/api";
-import { saveToken, saveDriver } from "@/src/lib/auth";
+import { saveToken, saveDriver, clearAuth } from "@/src/lib/auth";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -27,12 +27,17 @@ export default function LoginScreen() {
     try {
       const res = await loginDriver(email.trim().toLowerCase(), password);
       if (res.success) {
+        await clearAuth();
         await saveToken(res.token);
         await saveDriver(res.driver);
-        if (res.driver.status === "pending") {
+        if (res.driver.status === "approved") {
+          router.replace("/(tabs)");
+        } else if (res.driver.status === "pending") {
+          router.replace("/pending");
+        } else if (res.driver.status === "rejected") {
           router.replace("/pending");
         } else {
-          router.replace("/(tabs)");
+          router.replace("/documents");
         }
       } else {
         setError(res.message || "Login failed.");

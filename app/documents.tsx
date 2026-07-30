@@ -79,8 +79,9 @@ export default function DocumentsScreen() {
         try {
           await uploadDocument(doc.key, state.uri, state.expiry);
           setDocs((prev) => ({ ...prev, [doc.key]: { ...prev[doc.key], uploaded: true, uploading: false } }));
-        } catch {
-          setError(`Failed to upload ${doc.label}. Try again.`);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Unknown error";
+          setError(`Failed to upload ${doc.label}: ${msg}`);
           setDocs((prev) => ({ ...prev, [doc.key]: { ...prev[doc.key], uploading: false } }));
           setSubmitting(false);
           return;

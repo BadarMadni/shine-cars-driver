@@ -96,5 +96,7 @@ export async function uploadDocument(
     headers: { Authorization: `Bearer ${token}` },
     body: formData,
   });
-  return res.json();
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message || "Upload failed");
+  return data;
 }

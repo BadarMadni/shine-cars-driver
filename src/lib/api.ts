@@ -2,7 +2,7 @@ import { API_URL } from "@/src/constants/theme";
 import { getToken } from "./auth";
 
 async function request(path: string, options: RequestInit = {}) {
-  const token = await getToken();
+  const token = (await getToken())?.trim();
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
@@ -78,7 +78,8 @@ export async function savePushToken(pushToken: string) {
 export async function uploadDocument(
   type: string, uri: string, expiryDate: string
 ) {
-  const token = await getToken();
+  const raw = await getToken();
+  const token = raw?.trim();
   const formData = new FormData();
   formData.append("type", type);
   formData.append("expiryDate", expiryDate);

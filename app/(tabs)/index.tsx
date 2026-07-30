@@ -6,15 +6,17 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { COLORS } from "@/src/constants/theme";
-import { getDriver, saveDriver } from "@/src/lib/auth";
+import { getDriver, saveDriver, clearAuth } from "@/src/lib/auth";
 import { getProfile, toggleAvailability, getBookings, savePushToken } from "@/src/lib/api";
 import { useLocationTracking } from "@/src/hooks/useLocation";
+import { useRouter } from "expo-router";
 
 interface Driver {
   name: string; status: string; isAvailable?: boolean;
 }
 
 export default function DashboardScreen() {
+  const router = useRouter();
   const [driver, setDriver] = useState<Driver | null>(null);
   const [available, setAvailable] = useState(false);
   const [toggling, setToggling] = useState(false);
@@ -102,6 +104,13 @@ export default function DashboardScreen() {
           <Text style={styles.greeting}>{greeting},</Text>
           <Text style={styles.name}>{driver?.name || "Driver"}</Text>
         </View>
+        <TouchableOpacity style={styles.headerBtn} activeOpacity={0.7}>
+          <Ionicons name="notifications-outline" size={20} color={COLORS.white} />
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.headerBtn, { marginLeft: 8 }]} activeOpacity={0.7}
+          onPress={async () => { await clearAuth(); router.replace("/login"); }}>
+          <Ionicons name="log-out-outline" size={20} color={COLORS.crimson} />
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity
@@ -146,6 +155,10 @@ const styles = StyleSheet.create({
   headerText: { flex: 1, marginLeft: 14 },
   greeting: { color: COLORS.gray400, fontSize: 13 },
   name: { color: COLORS.white, fontSize: 20, fontWeight: "800" },
+  headerBtn: {
+    width: 40, height: 40, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.06)",
+    justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
+  },
   toggleCard: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     borderRadius: 16, padding: 18, marginBottom: 20, borderWidth: 1.5,

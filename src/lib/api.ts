@@ -90,6 +90,10 @@ export async function clearNotifications() {
   return request("/api/drivers/notifications", { method: "DELETE" });
 }
 
+export async function deleteAccount() {
+  return request("/api/drivers/me", { method: "DELETE" });
+}
+
 export async function uploadDocument(
   type: string, uri: string, expiryDate: string
 ): Promise<{ success: boolean; document?: unknown; message?: string }> {

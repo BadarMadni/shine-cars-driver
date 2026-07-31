@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "privacy": "https://shine-cars-website.vercel.app/privacy",
     "scheme": "shinecarsdriver",
     "sdkVersion": "54.0.0",
     "splash": {
@@ -28,7 +29,6 @@
       },
       "package": "com.shinecars.driver",
       "permissions": [
-        "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
       ]

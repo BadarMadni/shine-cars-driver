@@ -18,8 +18,7 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.shinecars.driver",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Shine Cars Driver needs your location so dispatchers can find and assign you nearby bookings.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Shine Cars Driver needs your location to track your position while on duty."
+        "NSLocationWhenInUseUsageDescription": "Shine Cars Driver needs your location so dispatchers can find and assign you nearby bookings."
       }
     },
     "android": {
@@ -40,8 +39,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Shine Cars Driver needs your location so dispatchers can find and assign you nearby bookings.",
-          "locationAlwaysAndWhenInUsePermission": "Shine Cars Driver needs your location to track your position while on duty."
+          "locationWhenInUsePermission": "Shine Cars Driver needs your location so dispatchers can find and assign you nearby bookings."
         }
       ],
       [

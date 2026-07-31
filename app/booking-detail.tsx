@@ -11,7 +11,7 @@ import { getBookings, updateBookingStatus } from "@/src/lib/api";
 import styles from "@/src/styles/bookingDetail";
 import {
   PaymentCard, CustomerCard, TripCard, RideInfoCard,
-  CashInputCard, ActionButtons, CompleteButton,
+  NotesCard, CashInputCard, ActionButtons, CompleteButton,
 } from "@/src/components/BookingDetailCards";
 
 interface Booking {
@@ -21,6 +21,7 @@ interface Booking {
   distance: number; fare: number;
   status: string; vehicle: string;
   paymentMethod?: string; paymentStatus?: string;
+  notes?: string | null;
 }
 
 const actions: Record<string, { label: string; next: string; icon: string; color: string }[]> = {
@@ -142,6 +143,7 @@ export default function BookingDetailScreen() {
         <CustomerCard booking={booking} onCall={() => booking.phone && Linking.openURL(`tel:${booking.phone}`)} />
         <TripCard booking={booking} />
         <RideInfoCard booking={booking} />
+        <NotesCard booking={booking} />
 
         {isInProgress && isCash && (
           <CashInputCard booking={booking} cashAmount={cashAmount} setCashAmount={setCashAmount} />

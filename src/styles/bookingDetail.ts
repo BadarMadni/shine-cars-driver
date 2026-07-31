@@ -55,4 +55,9 @@ export default StyleSheet.create({
     gap: 10, paddingVertical: 16, borderRadius: 14,
   },
   actionText: { color: COLORS.white, fontSize: 16, fontWeight: "700" },
+  navBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 8, backgroundColor: "#3B82F6", borderRadius: 12, paddingVertical: 12, marginTop: 14,
+  },
+  navBtnText: { color: COLORS.white, fontWeight: "700", fontSize: 14 },
 });

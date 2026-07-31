@@ -4,14 +4,9 @@ import { COLORS } from "@/src/constants/theme";
 import styles from "@/src/styles/bookingDetail";
 
 function openNavigation(address: string) {
-  const encoded = encodeURIComponent(address);
-  const url = Platform.OS === "ios"
-    ? `maps:?daddr=${encoded}&dirflg=d`
-    : `google.navigation:q=${encoded}&mode=d`;
-  Linking.canOpenURL(url).then((ok) => {
-    if (ok) Linking.openURL(url);
-    else Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${encoded}&travelmode=driving`);
-  });
+  const e = encodeURIComponent(address);
+  const url = Platform.OS === "ios" ? `maps:?daddr=${e}&dirflg=d` : `google.navigation:q=${e}&mode=d`;
+  Linking.canOpenURL(url).then((ok) => Linking.openURL(ok ? url : `https://www.google.com/maps/dir/?api=1&destination=${e}&travelmode=driving`));
 }
 
 interface Booking {
@@ -21,6 +16,7 @@ interface Booking {
   distance: number; fare: number;
   status: string; vehicle: string;
   paymentMethod?: string; paymentStatus?: string;
+  notes?: string | null;
 }
 
 export function PaymentCard({ booking }: { booking: Booking }) {
@@ -92,9 +88,9 @@ export function TripCard({ booking }: { booking: Booking }) {
       </View>
       {showNav && (
         <TouchableOpacity activeOpacity={0.8} onPress={() => openNavigation(navTo)}
-          style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "#3B82F6", borderRadius: 12, paddingVertical: 12, marginTop: 14 }}>
+          style={styles.navBtn}>
           <Ionicons name="navigate" size={18} color={COLORS.white} />
-          <Text style={{ color: COLORS.white, fontWeight: "700", fontSize: 14 }}>{navLabel}</Text>
+          <Text style={styles.navBtnText}>{navLabel}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -129,6 +125,12 @@ export function RideInfoCard({ booking }: { booking: Booking }) {
       </View>
     </View>
   );
+}
+
+export function NotesCard({ booking }: { booking: Booking }) {
+  const t = booking.notes?.startsWith("stripe:") ? null : booking.notes;
+  if (!t) return null;
+  return (<View style={styles.card}><Text style={styles.cardTitle}>Notes from Dispatcher</Text><View style={styles.infoRow}><Ionicons name="document-text-outline" size={16} color={COLORS.gold} /><Text style={[styles.infoText, { flex: 1 }]}>{t}</Text></View></View>);
 }
 
 export function CashInputCard({

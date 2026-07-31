@@ -1,8 +1,23 @@
 import { Tabs } from "expo-router";
+import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/constants/theme";
 import { useBookingPolling } from "@/src/hooks/useBookingPolling";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+function TabIcon({ name, color, focused }: { name: keyof typeof Ionicons.glyphMap; color: string; focused: boolean }) {
+  return (
+    <View style={{
+      alignItems: "center", justifyContent: "center",
+      ...(focused ? {
+        backgroundColor: "rgba(204,34,41,0.1)",
+        width: 48, height: 32, borderRadius: 16,
+      } : {}),
+    }}>
+      <Ionicons name={name} size={22} color={color} />
+    </View>
+  );
+}
 
 export default function TabsLayout() {
   const { assignedCount } = useBookingPolling();
@@ -14,22 +29,25 @@ export default function TabsLayout() {
       headerShown: false,
       tabBarStyle: {
         backgroundColor: COLORS.navy,
-        borderTopColor: "rgba(255,255,255,0.1)",
-        height: 56 + bottomPad,
+        borderTopWidth: 1,
+        borderTopColor: "rgba(255,255,255,0.06)",
+        height: 64 + bottomPad,
         paddingBottom: bottomPad,
-        paddingTop: 8,
+        paddingTop: 10,
+        elevation: 0,
+        shadowOpacity: 0,
       },
       tabBarActiveTintColor: COLORS.crimson,
-      tabBarInactiveTintColor: COLORS.gray400,
-      tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+      tabBarInactiveTintColor: COLORS.gray500,
+      tabBarLabelStyle: { fontSize: 11, fontWeight: "700", marginTop: 4, letterSpacing: 0.2 },
     }}>
       <Tabs.Screen name="index" options={{
-        title: "Dashboard",
-        tabBarIcon: ({ color, size }) => <Ionicons name="grid-outline" size={size} color={color} />,
+        title: "Home",
+        tabBarIcon: ({ color, focused }) => <TabIcon name={focused ? "grid" : "grid-outline"} color={color} focused={focused} />,
       }} />
       <Tabs.Screen name="bookings" options={{
         title: "Bookings",
-        tabBarIcon: ({ color, size }) => <Ionicons name="document-text-outline" size={size} color={color} />,
+        tabBarIcon: ({ color, focused }) => <TabIcon name={focused ? "document-text" : "document-text-outline"} color={color} focused={focused} />,
         tabBarBadge: assignedCount > 0 ? assignedCount : undefined,
         tabBarBadgeStyle: {
           backgroundColor: COLORS.crimson,
@@ -44,7 +62,7 @@ export default function TabsLayout() {
       }} />
       <Tabs.Screen name="profile" options={{
         title: "Profile",
-        tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
+        tabBarIcon: ({ color, focused }) => <TabIcon name={focused ? "person" : "person-outline"} color={color} focused={focused} />,
       }} />
     </Tabs>
   );

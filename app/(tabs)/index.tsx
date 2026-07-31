@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  View, Text, StyleSheet, Image, ScrollView, RefreshControl, Platform,
+  View, Text, Image, ScrollView, RefreshControl, Platform,
   TouchableOpacity, ActivityIndicator, Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,6 +10,8 @@ import { getDriver, saveDriver, clearAuth } from "@/src/lib/auth";
 import { getProfile, toggleAvailability, getBookings, savePushToken } from "@/src/lib/api";
 import { useLocationTracking } from "@/src/hooks/useLocation";
 import { useRouter } from "expo-router";
+import { useUnreadCount } from "@/src/hooks/useNotifications";
+import styles from "@/src/styles/dashboard";
 
 interface Driver {
   name: string; status: string; isAvailable?: boolean;
@@ -25,6 +27,7 @@ export default function DashboardScreen() {
   const [totalJobs, setTotalJobs] = useState(0);
 
   useLocationTracking(available);
+  const { count: unreadCount } = useUnreadCount();
 
   const load = async () => {
     const cached = await getDriver() as Driver | null;
@@ -88,24 +91,33 @@ export default function DashboardScreen() {
   const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
   const stats = [
-    { icon: "today-outline" as const, label: "Today", value: `${todayJobs} Bookings`, color: COLORS.gold },
-    { icon: "cash-outline" as const, label: "Earnings", value: "£0.00", color: COLORS.crimson },
-    { icon: "star-outline" as const, label: "Rating", value: "5.0", color: COLORS.orange },
-    { icon: "car-outline" as const, label: "Total Bookings", value: `${totalJobs}`, color: COLORS.green },
+    { icon: "today-outline" as const, label: "Today's Rides", value: `${todayJobs}`, color: COLORS.gold, bg: "rgba(245,166,35,0.1)" },
+    { icon: "cash-outline" as const, label: "Earnings", value: "£0.00", color: COLORS.crimson, bg: "rgba(204,34,41,0.1)" },
+    { icon: "star-outline" as const, label: "Rating", value: "5.0", color: COLORS.orange, bg: "rgba(249,115,22,0.1)" },
+    { icon: "car-outline" as const, label: "Total Rides", value: `${totalJobs}`, color: COLORS.green, bg: "rgba(34,197,94,0.1)" },
   ];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scroll}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.gold} />}>
 
+      {/* Header */}
       <View style={styles.header}>
-        <Image source={require("@/assets/logo.png")} style={styles.logo} resizeMode="contain" />
+        <View style={styles.logoWrap}>
+          <Image source={require("@/assets/icon.png")} style={styles.logo} resizeMode="cover" />
+        </View>
         <View style={styles.headerText}>
           <Text style={styles.greeting}>{greeting},</Text>
           <Text style={styles.name}>{driver?.name || "Driver"}</Text>
         </View>
-        <TouchableOpacity style={styles.headerBtn} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.headerBtn} activeOpacity={0.7}
+          onPress={() => router.push("/notifications")}>
           <Ionicons name="notifications-outline" size={20} color={COLORS.white} />
+          {unreadCount > 0 && (
+            <View style={{ position: "absolute", top: -4, right: -4, backgroundColor: COLORS.crimson, borderRadius: 9, minWidth: 18, height: 18, justifyContent: "center", alignItems: "center", paddingHorizontal: 4 }}>
+              <Text style={{ color: COLORS.white, fontSize: 10, fontWeight: "800" }}>{unreadCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
         <TouchableOpacity style={[styles.headerBtn, { marginLeft: 8 }]} activeOpacity={0.7}
           onPress={async () => { await clearAuth(); router.replace("/login"); }}>
@@ -113,13 +125,14 @@ export default function DashboardScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Availability Toggle */}
       <TouchableOpacity
         style={[styles.toggleCard, available ? styles.toggleAvailable : styles.toggleBusy]}
         onPress={handleToggle} disabled={toggling} activeOpacity={0.8}>
         <View style={styles.toggleLeft}>
           <View style={[styles.toggleDot, available ? styles.dotAvailable : styles.dotBusy]} />
           <View>
-            <Text style={styles.toggleLabel}>{available ? "Available" : "Busy"}</Text>
+            <Text style={styles.toggleLabel}>{available ? "Available" : "Offline"}</Text>
             <Text style={styles.toggleSub}>
               {available ? "You're visible to dispatchers" : "Tap to go online"}
             </Text>
@@ -134,10 +147,14 @@ export default function DashboardScreen() {
         )}
       </TouchableOpacity>
 
+      {/* Stats */}
+      <Text style={styles.sectionTitle}>Overview</Text>
       <View style={styles.statsGrid}>
         {stats.map((s) => (
           <View key={s.label} style={styles.statCard}>
-            <Ionicons name={s.icon} size={24} color={s.color} />
+            <View style={[styles.statIconWrap, { backgroundColor: s.bg }]}>
+              <Ionicons name={s.icon} size={20} color={s.color} />
+            </View>
             <Text style={styles.statValue}>{s.value}</Text>
             <Text style={styles.statLabel}>{s.label}</Text>
           </View>
@@ -146,42 +163,3 @@ export default function DashboardScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.navy },
-  scroll: { padding: 20, paddingTop: Platform.OS === "ios" ? 60 : 40 },
-  header: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
-  logo: { width: 48, height: 48, borderRadius: 12 },
-  headerText: { flex: 1, marginLeft: 14 },
-  greeting: { color: COLORS.gray400, fontSize: 13 },
-  name: { color: COLORS.white, fontSize: 20, fontWeight: "800" },
-  headerBtn: {
-    width: 40, height: 40, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.06)",
-    justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
-  },
-  toggleCard: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    borderRadius: 16, padding: 18, marginBottom: 20, borderWidth: 1.5,
-  },
-  toggleAvailable: { backgroundColor: "rgba(34,197,94,0.08)", borderColor: "rgba(34,197,94,0.3)" },
-  toggleBusy: { backgroundColor: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.1)" },
-  toggleLeft: { flexDirection: "row", alignItems: "center", gap: 14 },
-  toggleDot: { width: 12, height: 12, borderRadius: 6 },
-  dotAvailable: { backgroundColor: COLORS.green },
-  dotBusy: { backgroundColor: COLORS.gray500 },
-  toggleLabel: { color: COLORS.white, fontSize: 17, fontWeight: "700" },
-  toggleSub: { color: COLORS.gray400, fontSize: 12, marginTop: 2 },
-  toggleSwitch: { width: 52, height: 30, borderRadius: 15, justifyContent: "center", paddingHorizontal: 3 },
-  switchOn: { backgroundColor: COLORS.green },
-  switchOff: { backgroundColor: "rgba(255,255,255,0.15)" },
-  switchThumb: { width: 24, height: 24, borderRadius: 12, backgroundColor: COLORS.white },
-  thumbOn: { alignSelf: "flex-end" as const },
-  thumbOff: { alignSelf: "flex-start" as const },
-  statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-  statCard: {
-    width: "47%", backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 16,
-    padding: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
-  },
-  statValue: { color: COLORS.white, fontSize: 22, fontWeight: "800", marginTop: 10 },
-  statLabel: { color: COLORS.gray400, fontSize: 12, marginTop: 2 },
-});

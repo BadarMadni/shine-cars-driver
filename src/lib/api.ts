@@ -75,6 +75,21 @@ export async function savePushToken(pushToken: string) {
   });
 }
 
+export async function getNotifications() {
+  return request("/api/drivers/notifications");
+}
+
+export async function markNotificationsRead(id?: string) {
+  return request("/api/drivers/notifications/read", {
+    method: "PATCH",
+    body: JSON.stringify(id ? { id } : {}),
+  });
+}
+
+export async function clearNotifications() {
+  return request("/api/drivers/notifications", { method: "DELETE" });
+}
+
 export async function uploadDocument(
   type: string, uri: string, expiryDate: string
 ): Promise<{ success: boolean; document?: unknown; message?: string }> {

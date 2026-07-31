@@ -1,7 +1,18 @@
-import { View, Text, TouchableOpacity, TextInput, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, Platform, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/constants/theme";
 import styles from "@/src/styles/bookingDetail";
+
+function openNavigation(address: string) {
+  const encoded = encodeURIComponent(address);
+  const url = Platform.OS === "ios"
+    ? `maps:?daddr=${encoded}&dirflg=d`
+    : `google.navigation:q=${encoded}&mode=d`;
+  Linking.canOpenURL(url).then((ok) => {
+    if (ok) Linking.openURL(url);
+    else Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${encoded}&travelmode=driving`);
+  });
+}
 
 interface Booking {
   id: string; name: string; phone: string;
@@ -57,6 +68,10 @@ export function CustomerCard({ booking, onCall }: { booking: Booking; onCall: ()
 }
 
 export function TripCard({ booking }: { booking: Booking }) {
+  const showNav = ["accepted", "arrived", "in-progress"].includes(booking.status);
+  const navTo = booking.status === "accepted" ? booking.pickup : booking.dropoff;
+  const navLabel = booking.status === "accepted" ? "Navigate to Pickup" : "Navigate to Drop-off";
+
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Trip Details</Text>
@@ -75,6 +90,13 @@ export function TripCard({ booking }: { booking: Booking }) {
           <Text style={styles.tripAddress}>{booking.dropoff}</Text>
         </View>
       </View>
+      {showNav && (
+        <TouchableOpacity activeOpacity={0.8} onPress={() => openNavigation(navTo)}
+          style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "#3B82F6", borderRadius: 12, paddingVertical: 12, marginTop: 14 }}>
+          <Ionicons name="navigate" size={18} color={COLORS.white} />
+          <Text style={{ color: COLORS.white, fontWeight: "700", fontSize: 14 }}>{navLabel}</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

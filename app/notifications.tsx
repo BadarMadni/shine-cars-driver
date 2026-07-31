@@ -10,7 +10,7 @@ import { getNotifications, markNotificationsRead, clearNotifications } from "@/s
 
 interface Notification {
   id: string; title: string; body: string;
-  type: string; isRead: boolean; createdAt: string;
+  type: string; isRead: boolean; createdAt: string; data?: string;
 }
 
 const typeIcons: Record<string, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
@@ -38,9 +38,20 @@ export default function NotificationsScreen() {
 
   const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 
-  const markRead = async (id: string) => {
-    setItems((prev) => prev.map((n) => n.id === id ? { ...n, isRead: true } : n));
-    await markNotificationsRead(id);
+  const handleTap = async (n: Notification) => {
+    if (!n.isRead) {
+      setItems((prev) => prev.map((x) => x.id === n.id ? { ...x, isRead: true } : x));
+      markNotificationsRead(n.id);
+    }
+    if (n.data) {
+      try {
+        const parsed = JSON.parse(n.data);
+        if (parsed.bookingId) {
+          router.push({ pathname: "/booking-detail", params: { id: parsed.bookingId } });
+          return;
+        }
+      } catch {}
+    }
   };
 
   const markAllRead = async () => {
@@ -103,7 +114,7 @@ export default function NotificationsScreen() {
           items.map((n) => {
             const icon = typeIcons[n.type] || typeIcons.info;
             return (
-              <TouchableOpacity key={n.id} activeOpacity={0.7} onPress={() => markRead(n.id)}
+              <TouchableOpacity key={n.id} activeOpacity={0.7} onPress={() => handleTap(n)}
                 style={[s.card, !n.isRead && s.cardUnread]}>
                 <View style={[s.iconWrap, { backgroundColor: icon.color + "15" }]}>
                   <Ionicons name={icon.name} size={20} color={icon.color} />

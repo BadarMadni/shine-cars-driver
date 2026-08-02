@@ -75,9 +75,9 @@ export default function ChatScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0F1629" }}>
-    <KeyboardAvoidingView style={[s.root, { paddingTop: insets.top }]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}>
+    <View style={{ flex: 1, backgroundColor: "#0F1629", paddingTop: insets.top, paddingBottom: insets.bottom }}>
+    <KeyboardAvoidingView style={s.root}
+      behavior="padding" keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -insets.bottom}>
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
@@ -104,7 +104,7 @@ export default function ChatScreen() {
       )}
 
       {/* Input */}
-      <View style={[s.inputBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View style={s.inputBar}>
         <TextInput style={s.input} value={input} onChangeText={setInput}
           placeholder="Type a message..." placeholderTextColor="rgba(255,255,255,0.25)"
           multiline maxLength={500} onSubmitEditing={send} returnKeyType="send" />
@@ -139,7 +139,7 @@ const s = StyleSheet.create({
   timeText: { fontSize: 9, marginTop: 4, textAlign: "right" },
   timeRight: { color: "rgba(255,255,255,0.45)" },
   timeLeft: { color: "rgba(255,255,255,0.25)" },
-  inputBar: { flexDirection: "row", alignItems: "flex-end", gap: 8, paddingHorizontal: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.06)", backgroundColor: "#0F1629" },
+  inputBar: { flexDirection: "row", alignItems: "flex-end", gap: 8, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 12, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.06)", backgroundColor: "#0F1629" },
   input: { flex: 1, backgroundColor: "rgba(255,255,255,0.06)", color: COLORS.white, fontSize: 14, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, maxHeight: 100, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
   sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.crimson, alignItems: "center", justifyContent: "center" },
   sendBtnDisabled: { opacity: 0.3 },

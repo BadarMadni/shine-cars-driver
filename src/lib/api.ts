@@ -94,6 +94,17 @@ export async function deleteAccount() {
   return request("/api/drivers/me", { method: "DELETE" });
 }
 
+export async function getChatMessages() {
+  return request("/api/drivers/chat");
+}
+
+export async function sendChatMessage(message: string) {
+  return request("/api/drivers/chat", {
+    method: "POST",
+    body: JSON.stringify({ message }),
+  });
+}
+
 export async function uploadDocument(
   type: string, uri: string, expiryDate: string
 ): Promise<{ success: boolean; document?: unknown; message?: string }> {

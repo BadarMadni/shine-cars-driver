@@ -11,6 +11,7 @@ import { getProfile, toggleAvailability, getBookings, savePushToken } from "@/sr
 import { useLocationTracking } from "@/src/hooks/useLocation";
 import { useRouter } from "expo-router";
 import { useUnreadCount } from "@/src/hooks/useNotifications";
+import { useChatUnread } from "@/src/hooks/useChatUnread";
 import styles from "@/src/styles/dashboard";
 
 interface Driver {
@@ -28,6 +29,7 @@ export default function DashboardScreen() {
 
   useLocationTracking(available);
   const { count: unreadCount } = useUnreadCount();
+  const chatUnread = useChatUnread();
 
   const load = async () => {
     const cached = await getDriver() as Driver | null;
@@ -111,6 +113,15 @@ export default function DashboardScreen() {
           <Text style={styles.name}>{driver?.name || "Driver"}</Text>
         </View>
         <TouchableOpacity style={styles.headerBtn} activeOpacity={0.7}
+          onPress={() => router.push("/chat")}>
+          <Ionicons name="chatbubble-ellipses-outline" size={20} color={COLORS.white} />
+          {chatUnread > 0 && (
+            <View style={{ position: "absolute", top: -4, right: -4, backgroundColor: COLORS.crimson, borderRadius: 9, minWidth: 18, height: 18, justifyContent: "center", alignItems: "center", paddingHorizontal: 4 }}>
+              <Text style={{ color: COLORS.white, fontSize: 10, fontWeight: "800" }}>{chatUnread}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.headerBtn, { marginLeft: 8 }]} activeOpacity={0.7}
           onPress={() => router.push("/notifications")}>
           <Ionicons name="notifications-outline" size={20} color={COLORS.white} />
           {unreadCount > 0 && (
@@ -119,7 +130,7 @@ export default function DashboardScreen() {
             </View>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.headerBtn, { marginLeft: 8 }]} activeOpacity={0.7}
+        <TouchableOpacity style={styles.headerBtn} activeOpacity={0.7}
           onPress={async () => { await clearAuth(); router.replace("/login"); }}>
           <Ionicons name="log-out-outline" size={20} color={COLORS.crimson} />
         </TouchableOpacity>

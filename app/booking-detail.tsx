@@ -16,7 +16,7 @@ import {
 
 interface Booking {
   id: string; name: string; phone: string;
-  pickup: string; dropoff: string;
+  pickup: string; dropoff: string; stops?: string | null;
   date: string; time: string;
   distance: number; fare: number;
   status: string; vehicle: string;
@@ -46,6 +46,7 @@ export default function BookingDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [cashAmount, setCashAmount] = useState("");
+  const [currentStopIndex, setCurrentStopIndex] = useState(0);
 
   const load = async () => {
     try {
@@ -141,7 +142,8 @@ export default function BookingDetailScreen() {
 
         <PaymentCard booking={booking} />
         <CustomerCard booking={booking} onCall={() => booking.phone && Linking.openURL(`tel:${booking.phone}`)} />
-        <TripCard booking={booking} />
+        <TripCard booking={booking} currentStopIndex={currentStopIndex}
+          onNextStop={() => setCurrentStopIndex((i) => i + 1)} />
         <RideInfoCard booking={booking} />
         <NotesCard booking={booking} />
 

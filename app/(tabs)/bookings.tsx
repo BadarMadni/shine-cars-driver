@@ -12,7 +12,7 @@ const POLL_INTERVAL = 10_000;
 
 interface Booking {
   id: string; name: string; phone: string;
-  pickup: string; dropoff: string;
+  pickup: string; dropoff: string; stops?: string | null;
   date: string; time: string;
   fare: number; status: string; vehicle: string;
 }
@@ -129,6 +129,12 @@ export default function BookingsScreen() {
                   <View style={[styles.dot, { backgroundColor: COLORS.green }]} />
                   <Text style={styles.locationText} numberOfLines={1}>{b.pickup}</Text>
                 </View>
+                {b.stops && (() => { try { const s: string[] = JSON.parse(b.stops); return s.map((addr, i) => (
+                  <View key={i} style={styles.locationRow}>
+                    <View style={[styles.dot, { backgroundColor: "#F59E0B" }]} />
+                    <Text style={styles.locationText} numberOfLines={1}>{addr}</Text>
+                  </View>
+                )); } catch { return null; } })()}
                 <View style={styles.locationRow}>
                   <View style={[styles.dot, { backgroundColor: COLORS.crimson }]} />
                   <Text style={styles.locationText} numberOfLines={1}>{b.dropoff}</Text>

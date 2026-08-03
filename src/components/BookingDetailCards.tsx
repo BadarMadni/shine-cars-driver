@@ -11,7 +11,7 @@ function openNavigation(address: string) {
 
 interface Booking {
   id: string; name: string; phone: string;
-  pickup: string; dropoff: string;
+  pickup: string; dropoff: string; stops?: string | null;
   date: string; time: string;
   distance: number; fare: number;
   status: string; vehicle: string;
@@ -63,34 +63,48 @@ export function CustomerCard({ booking, onCall }: { booking: Booking; onCall: ()
   );
 }
 
-export function TripCard({ booking }: { booking: Booking }) {
+export function TripCard({ booking, currentStopIndex, onNextStop }: {
+  booking: Booking; currentStopIndex?: number; onNextStop?: () => void;
+}) {
+  const parsedStops: string[] = booking.stops ? (() => { try { return JSON.parse(booking.stops); } catch { return []; } })() : [];
   const showNav = ["accepted", "arrived", "in-progress"].includes(booking.status);
-  const navTo = booking.status === "accepted" ? booking.pickup : booking.dropoff;
-  const navLabel = booking.status === "accepted" ? "Navigate to Pickup" : "Navigate to Drop-off";
+  const stopIdx = currentStopIndex ?? 0;
 
+  let navTo = booking.dropoff;
+  let navLabel = "Navigate to Drop-off";
+  if (booking.status === "accepted") {
+    navTo = booking.pickup;
+    navLabel = "Navigate to Pickup";
+  } else if (parsedStops.length > 0 && stopIdx < parsedStops.length) {
+    navTo = parsedStops[stopIdx];
+    navLabel = `Navigate to Stop ${stopIdx + 1}`;
+  }
+
+  const TripPoint = ({ color, label, address }: { color: string; label: string; address: string }) => (
+    <View style={styles.tripRow}>
+      <View style={[styles.tripDot, { backgroundColor: color }]} />
+      <View style={styles.tripInfo}><Text style={styles.tripLabel}>{label}</Text><Text style={styles.tripAddress}>{address}</Text></View>
+    </View>
+  );
+  const showNext = showNav && parsedStops.length > 0 && stopIdx < parsedStops.length && booking.status !== "accepted" && onNextStop;
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Trip Details</Text>
-      <View style={styles.tripRow}>
-        <View style={[styles.tripDot, { backgroundColor: COLORS.green }]} />
-        <View style={styles.tripInfo}>
-          <Text style={styles.tripLabel}>Pickup</Text>
-          <Text style={styles.tripAddress}>{booking.pickup}</Text>
-        </View>
-      </View>
+      <TripPoint color={COLORS.green} label="Pickup" address={booking.pickup} />
+      {parsedStops.map((stop, i) => (
+        <View key={i}><View style={styles.tripLine} /><TripPoint color={i === stopIdx && booking.status !== "accepted" ? "#F59E0B" : "#D4A017"} label={`Stop ${i + 1}`} address={stop} /></View>
+      ))}
       <View style={styles.tripLine} />
-      <View style={styles.tripRow}>
-        <View style={[styles.tripDot, { backgroundColor: COLORS.crimson }]} />
-        <View style={styles.tripInfo}>
-          <Text style={styles.tripLabel}>Drop-off</Text>
-          <Text style={styles.tripAddress}>{booking.dropoff}</Text>
-        </View>
-      </View>
+      <TripPoint color={COLORS.crimson} label="Drop-off" address={booking.dropoff} />
       {showNav && (
-        <TouchableOpacity activeOpacity={0.8} onPress={() => openNavigation(navTo)}
-          style={styles.navBtn}>
-          <Ionicons name="navigate" size={18} color={COLORS.white} />
-          <Text style={styles.navBtnText}>{navLabel}</Text>
+        <TouchableOpacity activeOpacity={0.8} onPress={() => openNavigation(navTo)} style={styles.navBtn}>
+          <Ionicons name="navigate" size={18} color={COLORS.white} /><Text style={styles.navBtnText}>{navLabel}</Text>
+        </TouchableOpacity>
+      )}
+      {showNext && (
+        <TouchableOpacity activeOpacity={0.8} onPress={onNextStop} style={[styles.navBtn, { backgroundColor: "#F59E0B", marginTop: 8 }]}>
+          <Ionicons name="checkmark-circle" size={18} color={COLORS.white} />
+          <Text style={styles.navBtnText}>{stopIdx < parsedStops.length - 1 ? `Done — Next Stop ${stopIdx + 2}` : "Done — Head to Drop-off"}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -98,30 +112,23 @@ export function TripCard({ booking }: { booking: Booking }) {
 }
 
 export function RideInfoCard({ booking }: { booking: Booking }) {
+  const items: { icon: keyof typeof Ionicons.glyphMap; value: string; label: string }[] = [
+    { icon: "calendar-outline", value: booking.date, label: "Date" },
+    { icon: "time-outline", value: booking.time, label: "Time" },
+    { icon: "speedometer-outline", value: `${booking.distance?.toFixed(1) || "—"} mi`, label: "Distance" },
+    { icon: "cash-outline", value: `£${booking.fare.toFixed(2)}`, label: "Fare" },
+  ];
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Ride Info</Text>
       <View style={styles.rideGrid}>
-        <View style={styles.rideItem}>
-          <Ionicons name="calendar-outline" size={18} color={COLORS.gold} />
-          <Text style={styles.rideValue}>{booking.date}</Text>
-          <Text style={styles.rideLabel}>Date</Text>
-        </View>
-        <View style={styles.rideItem}>
-          <Ionicons name="time-outline" size={18} color={COLORS.gold} />
-          <Text style={styles.rideValue}>{booking.time}</Text>
-          <Text style={styles.rideLabel}>Time</Text>
-        </View>
-        <View style={styles.rideItem}>
-          <Ionicons name="speedometer-outline" size={18} color={COLORS.gold} />
-          <Text style={styles.rideValue}>{booking.distance?.toFixed(1) || "—"} mi</Text>
-          <Text style={styles.rideLabel}>Distance</Text>
-        </View>
-        <View style={styles.rideItem}>
-          <Ionicons name="cash-outline" size={18} color={COLORS.gold} />
-          <Text style={styles.rideValue}>£{booking.fare.toFixed(2)}</Text>
-          <Text style={styles.rideLabel}>Fare</Text>
-        </View>
+        {items.map((it) => (
+          <View key={it.label} style={styles.rideItem}>
+            <Ionicons name={it.icon} size={18} color={COLORS.gold} />
+            <Text style={styles.rideValue}>{it.value}</Text>
+            <Text style={styles.rideLabel}>{it.label}</Text>
+          </View>
+        ))}
       </View>
     </View>
   );
@@ -184,14 +191,8 @@ export function ActionButtons({
 export function CompleteButton({ updating, onComplete }: { updating: boolean; onComplete: () => void }) {
   return (
     <View style={styles.actionsWrap}>
-      <TouchableOpacity activeOpacity={0.8} onPress={onComplete} disabled={updating}
-        style={[styles.actionBtn, { backgroundColor: COLORS.green }]}>
-        {updating ? <ActivityIndicator color={COLORS.white} /> : (
-          <>
-            <Ionicons name="checkmark-done-circle" size={20} color={COLORS.white} />
-            <Text style={styles.actionText}>Complete Trip</Text>
-          </>
-        )}
+      <TouchableOpacity activeOpacity={0.8} onPress={onComplete} disabled={updating} style={[styles.actionBtn, { backgroundColor: COLORS.green }]}>
+        {updating ? <ActivityIndicator color={COLORS.white} /> : (<><Ionicons name="checkmark-done-circle" size={20} color={COLORS.white} /><Text style={styles.actionText}>Complete Trip</Text></>)}
       </TouchableOpacity>
     </View>
   );

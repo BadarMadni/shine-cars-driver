@@ -15,7 +15,7 @@ export function useLocationTracking(enabled: boolean) {
 
     const sendLocation = async () => {
       try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
+        const { status } = await Location.getForegroundPermissionsAsync();
         if (status !== "granted") return;
 
         const loc = await Location.getCurrentPositionAsync({

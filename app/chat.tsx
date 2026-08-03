@@ -77,7 +77,7 @@ export default function ChatScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "#0F1629", paddingTop: insets.top, paddingBottom: insets.bottom }}>
     <KeyboardAvoidingView style={s.root}
-      behavior="padding" keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -insets.bottom}>
+      behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}>
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>

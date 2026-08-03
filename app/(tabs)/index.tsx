@@ -62,9 +62,12 @@ export default function DashboardScreen() {
 
   const requestPermissions = async () => {
     try {
-      const { status: locStatus } = await Location.requestForegroundPermissionsAsync();
-      if (locStatus !== "granted") {
-        Alert.alert("Location Required", "Please enable location access so dispatchers can find you.");
+      const { status: existing } = await Location.getForegroundPermissionsAsync();
+      if (existing !== "granted") {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Location Required", "Please enable location access so dispatchers can find you.");
+        }
       }
     } catch {}
     try {

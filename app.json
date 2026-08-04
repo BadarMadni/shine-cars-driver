@@ -17,8 +17,10 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.shinecars.driver",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Shine Cars Driver needs your location so dispatchers can find and assign you nearby bookings."
+        "NSLocationWhenInUseUsageDescription": "Shine Cars Driver needs your location so dispatchers can find and assign you nearby bookings.",
+        "UIBackgroundModes": ["remote-notification"]
       }
     },
     "android": {
@@ -28,6 +30,7 @@
       },
       "package": "com.shinecars.driver",
       "softwareKeyboardLayoutMode": "adjustResize",
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
@@ -37,6 +40,12 @@
       "expo-router",
       "expo-font",
       "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "sounds": []
+        }
+      ],
       [
         "expo-location",
         {

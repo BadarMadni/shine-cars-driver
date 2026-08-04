@@ -1,8 +1,6 @@
 import { Platform } from "react-native";
 import * as Device from "expo-device";
-import Constants from "expo-constants";
 
-// Lazy-load expo-notifications — it crashes in Expo Go SDK 53+
 let Notifications: typeof import("expo-notifications") | null = null;
 
 async function getNotifications() {
@@ -57,15 +55,10 @@ export async function registerForPushNotifications(): Promise<string | null> {
       });
     }
 
-    const projectId = Constants.expoConfig?.extra?.eas?.projectId
-      ?? Constants.easConfig?.projectId;
-
-    const tokenData = await notif.getExpoPushTokenAsync({
-      projectId: projectId || undefined,
-    });
-
-    console.log("Push token:", tokenData.data);
-    return tokenData.data;
+    // Use native FCM/APNs device token instead of Expo push token
+    const tokenData = await notif.getDevicePushTokenAsync();
+    console.log("FCM device token:", tokenData.data);
+    return tokenData.data as string;
   } catch (e) {
     console.log("Push notification registration failed:", e);
     return null;

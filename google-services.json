@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "86643066370",
+    "project_id": "shine-cars",
+    "storage_bucket": "shine-cars.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:86643066370:android:9b63a026b0663451ea091b",
+        "android_client_info": {
+          "package_name": "com.shinecars.driver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBph4wGDLwfC3TWIzRWf-yjcdl5a_QdzU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

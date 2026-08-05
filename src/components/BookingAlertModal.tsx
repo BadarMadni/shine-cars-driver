@@ -12,6 +12,7 @@ const TIMER_SECONDS = 15;
 interface Booking {
   id: string; name: string; pickup: string; dropoff: string;
   vehicle?: string; fare?: number; date?: string; time?: string;
+  fareType?: string;
 }
 
 interface Props {
@@ -120,9 +121,20 @@ export default function BookingAlertModal({ booking, onAccept, onReject }: Props
             <View style={s.row}>
               <Ionicons name="cash" size={16} color={COLORS.gold} />
               <Text style={s.label}>Fare</Text>
-              <Text style={[s.value, { color: COLORS.gold, fontWeight: "800" }]}>
-                £{Number(booking.fare).toFixed(2)}
-              </Text>
+              {booking.fareType === "meter" ? (
+                <Text style={[s.value, { color: COLORS.gold, fontWeight: "800" }]}>
+                  £{(Number(booking.fare) * 0.9).toFixed(2)} – £{(Number(booking.fare) * 1.1).toFixed(2)}
+                </Text>
+              ) : (
+                <Text style={[s.value, { color: COLORS.gold, fontWeight: "800" }]}>
+                  £{Number(booking.fare).toFixed(2)}
+                </Text>
+              )}
+            </View>
+          )}
+          {booking.fareType === "meter" && (
+            <View style={{ backgroundColor: "#FFF7ED", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, marginBottom: 6, alignSelf: "flex-start" }}>
+              <Text style={{ fontSize: 11, fontWeight: "700", color: "#EA580C" }}>METER — Cash Only</Text>
             </View>
           )}
           {booking.date && (

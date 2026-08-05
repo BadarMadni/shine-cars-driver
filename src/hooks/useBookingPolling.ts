@@ -7,6 +7,7 @@ const POLL_INTERVAL = 10_000;
 export interface NewBooking {
   id: string; name: string; pickup: string; dropoff: string;
   vehicle?: string; fare?: number; date?: string; time?: string;
+  fareType?: string;
 }
 
 export function useBookingPolling() {

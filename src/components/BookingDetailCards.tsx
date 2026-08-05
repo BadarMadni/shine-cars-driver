@@ -16,6 +16,7 @@ interface Booking {
   distance: number; fare: number;
   status: string; vehicle: string;
   paymentMethod?: string; paymentStatus?: string;
+  fareType?: string; meterDistance?: number | null; meterFare?: number | null;
   notes?: string | null;
 }
 
@@ -23,9 +24,17 @@ export function PaymentCard({ booking }: { booking: Booking }) {
   const isCash = booking.paymentMethod === "cash";
   const isCard = booking.paymentMethod === "card";
   const isPaid = booking.paymentStatus === "paid";
+  const isMeter = booking.fareType === "meter";
   return (
     <View style={[styles.card, isCard && isPaid ? styles.paidCard : isCash ? styles.cashCard : null]}>
-      <Text style={styles.cardTitle}>Payment</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <Text style={styles.cardTitle}>Payment</Text>
+        {isMeter && (
+          <View style={{ backgroundColor: "#FFF7ED", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 }}>
+            <Text style={{ fontSize: 10, fontWeight: "700", color: "#EA580C" }}>METER</Text>
+          </View>
+        )}
+      </View>
       <View style={styles.paymentRow}>
         <Ionicons name={isCard ? "card-outline" : "cash-outline"} size={20} color={isCard ? "#06B6D4" : COLORS.gold} />
         <Text style={styles.paymentMethod}>{isCard ? "Card Payment" : "Cash Payment"}</Text>
@@ -140,22 +149,14 @@ export function NotesCard({ booking }: { booking: Booking }) {
   return (<View style={styles.card}><Text style={styles.cardTitle}>Notes from Dispatcher</Text><View style={styles.infoRow}><Ionicons name="document-text-outline" size={16} color={COLORS.gold} /><Text style={[styles.infoText, { flex: 1 }]}>{t}</Text></View></View>);
 }
 
-export function CashInputCard({
-  booking, cashAmount, setCashAmount,
-}: { booking: Booking; cashAmount: string; setCashAmount: (v: string) => void }) {
+export function CashInputCard({ booking, cashAmount, setCashAmount }: { booking: Booking; cashAmount: string; setCashAmount: (v: string) => void }) {
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Cash Collected</Text>
       <View style={styles.cashInputRow}>
         <Text style={styles.currencySign}>£</Text>
-        <TextInput
-          style={styles.cashInput}
-          value={cashAmount}
-          onChangeText={setCashAmount}
-          placeholder={booking.fare.toFixed(2)}
-          placeholderTextColor={COLORS.gray500}
-          keyboardType="decimal-pad"
-        />
+        <TextInput style={styles.cashInput} value={cashAmount} onChangeText={setCashAmount}
+          placeholder={booking.fare.toFixed(2)} placeholderTextColor={COLORS.gray500} keyboardType="decimal-pad" />
       </View>
       <Text style={styles.cashHint}>Enter amount received from customer</Text>
     </View>

@@ -46,11 +46,12 @@ export async function getBookings(filter: string) {
 }
 
 export async function updateBookingStatus(
-  bookingId: string, status: string, cashCollected?: number
+  bookingId: string, status: string, cashCollected?: number,
+  meterDistance?: number, meterFare?: number,
 ) {
   return request("/api/drivers/bookings/status", {
     method: "PATCH",
-    body: JSON.stringify({ bookingId, status, cashCollected }),
+    body: JSON.stringify({ bookingId, status, cashCollected, meterDistance, meterFare }),
   });
 }
 

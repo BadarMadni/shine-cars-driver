@@ -1,18 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity,
   ActivityIndicator, Platform, Alert, Linking,
   KeyboardAvoidingView,
 } from "react-native";
+import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/constants/theme";
 import { getBookings, updateBookingStatus } from "@/src/lib/api";
+import { calculateMeterFare, haversine } from "@/src/lib/meterFare";
 import styles from "@/src/styles/bookingDetail";
 import {
   PaymentCard, CustomerCard, TripCard, RideInfoCard,
   NotesCard, CashInputCard, ActionButtons, CompleteButton,
 } from "@/src/components/BookingDetailCards";
+import MeterCard from "@/src/components/MeterCard";
 
 interface Booking {
   id: string; name: string; phone: string;
@@ -21,6 +24,7 @@ interface Booking {
   distance: number; fare: number;
   status: string; vehicle: string;
   paymentMethod?: string; paymentStatus?: string;
+  fareType?: string; meterDistance?: number | null; meterFare?: number | null;
   notes?: string | null;
 }
 
@@ -47,6 +51,11 @@ export default function BookingDetailScreen() {
   const [updating, setUpdating] = useState(false);
   const [cashAmount, setCashAmount] = useState("");
   const [currentStopIndex, setCurrentStopIndex] = useState(0);
+  const [meterRunning, setMeterRunning] = useState(false);
+  const [meterDistance, setMeterDistance] = useState(0);
+  const [meterFare, setMeterFare] = useState(0);
+  const locationSub = useRef<Location.LocationSubscription | null>(null);
+  const lastPos = useRef<{ lat: number; lng: number } | null>(null);
 
   const load = async () => {
     try {
@@ -62,11 +71,41 @@ export default function BookingDetailScreen() {
 
   useEffect(() => { load(); }, [id]);
 
-  const doUpdate = async (nextStatus: string, cash?: number) => {
+  useEffect(() => {
+    return () => { locationSub.current?.remove(); };
+  }, []);
+
+  const startMeter = useCallback(async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") { Alert.alert("Permission", "Location permission needed for meter."); return; }
+    setMeterRunning(true);
+    setMeterDistance(0);
+    setMeterFare(0);
+    lastPos.current = null;
+    locationSub.current = await Location.watchPositionAsync(
+      { accuracy: Location.Accuracy.High, distanceInterval: 10, timeInterval: 3000 },
+      (loc) => {
+        const { latitude, longitude } = loc.coords;
+        if (lastPos.current) {
+          const d = haversine(lastPos.current.lat, lastPos.current.lng, latitude, longitude);
+          setMeterDistance((prev) => {
+            const newDist = prev + d;
+            setMeterFare(calculateMeterFare(newDist, (booking?.vehicle || "car") as "car" | "mpv"));
+            return newDist;
+          });
+        }
+        lastPos.current = { lat: latitude, lng: longitude };
+      },
+    );
+  }, [booking]);
+
+  const stopMeter = useCallback(() => { locationSub.current?.remove(); locationSub.current = null; setMeterRunning(false); }, []);
+
+  const doUpdate = async (nextStatus: string, cash?: number, mDist?: number, mFare?: number) => {
     if (!booking) return;
     setUpdating(true);
     try {
-      const res = await updateBookingStatus(booking.id, nextStatus, cash);
+      const res = await updateBookingStatus(booking.id, nextStatus, cash, mDist, mFare);
       if (res.success) setBooking({ ...booking, status: nextStatus });
     } catch {}
     setUpdating(false);
@@ -86,7 +125,12 @@ export default function BookingDetailScreen() {
 
   const handleComplete = () => {
     if (!booking) return;
+    const isMeter = booking.fareType === "meter";
     const isCash = booking.paymentMethod === "cash";
+    if (isMeter && meterRunning) {
+      Alert.alert("Stop Meter", "Please stop the meter before completing.");
+      return;
+    }
     if (isCash && !cashAmount.trim()) {
       Alert.alert("Cash Amount", "Please enter the cash amount collected.");
       return;
@@ -96,27 +140,16 @@ export default function BookingDetailScreen() {
       Alert.alert("Invalid Amount", "Please enter a valid amount.");
       return;
     }
-    doUpdate("completed", amount);
+    doUpdate("completed", amount, isMeter ? meterDistance : undefined, isMeter ? meterFare : undefined);
   };
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator color={COLORS.gold} size="large" />
-      </View>
-    );
-  }
-
-  if (!booking) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.emptyText}>Booking not found</Text>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  if (loading) return <View style={styles.center}><ActivityIndicator color={COLORS.gold} size="large" /></View>;
+  if (!booking) return (
+    <View style={styles.center}>
+      <Text style={styles.emptyText}>Booking not found</Text>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}><Text style={styles.backText}>Go Back</Text></TouchableOpacity>
+    </View>
+  );
 
   const currentActions = actions[booking.status] || [];
   const isCash = booking.paymentMethod === "cash";
@@ -145,6 +178,10 @@ export default function BookingDetailScreen() {
         <TripCard booking={booking} currentStopIndex={currentStopIndex}
           onNextStop={() => setCurrentStopIndex((i) => i + 1)} />
         <RideInfoCard booking={booking} />
+        {booking.fareType === "meter" && isInProgress && (
+          <MeterCard meterRunning={meterRunning} meterDistance={meterDistance}
+            meterFare={meterFare} onStart={startMeter} onStop={stopMeter} />
+        )}
         <NotesCard booking={booking} />
 
         {isInProgress && isCash && (

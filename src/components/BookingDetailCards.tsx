@@ -17,7 +17,7 @@ interface Booking {
   status: string; vehicle: string;
   paymentMethod?: string; paymentStatus?: string;
   fareType?: string; meterDistance?: number | null; meterFare?: number | null;
-  notes?: string | null;
+  cashCollected?: number | null; notes?: string | null;
 }
 
 export function PaymentCard({ booking }: { booking: Booking }) {
@@ -52,6 +52,12 @@ export function PaymentCard({ booking }: { booking: Booking }) {
           <Text style={styles.cashText}>{booking.fareType === "meter" && !booking.meterFare
             ? `Estimated: £${(booking.fare * 0.9).toFixed(2)} – £${(booking.fare * 1.1).toFixed(2)}`
             : `Collect £${(booking.meterFare ?? booking.fare).toFixed(2)} cash from customer`}</Text>
+        </View>
+      )}
+      {booking.cashCollected != null && booking.status === "completed" && (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8, backgroundColor: "#F0FDF4", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 }}>
+          <Ionicons name="checkmark-circle" size={16} color="#22C55E" />
+          <Text style={{ fontSize: 13, fontWeight: "700", color: "#16A34A" }}>Cash Collected: £{booking.cashCollected.toFixed(2)}</Text>
         </View>
       )}
     </View>

@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Alert } from "react-native";
+import { Audio } from "expo-av";
 import { useRouter } from "expo-router";
 import { getBookings } from "@/src/lib/api";
 import { getToken } from "@/src/lib/auth";
+
+const alertSound = require("@/assets/booking-alert.wav");
 
 const POLL_INTERVAL = 10_000; // 10 seconds
 
@@ -34,6 +37,14 @@ export function useBookingPolling() {
       bookings.forEach((b) => knownIds.current.add(b.id));
 
       if (newBookings.length > 0) {
+        try {
+          await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
+          const { sound } = await Audio.Sound.createAsync(alertSound, { volume: 1.0 });
+          await sound.playAsync();
+          sound.setOnPlaybackStatusUpdate((s) => {
+            if ("didJustFinish" in s && s.didJustFinish) sound.unloadAsync();
+          });
+        } catch {}
         const latest = newBookings[0];
         Alert.alert(
           "New Booking!",

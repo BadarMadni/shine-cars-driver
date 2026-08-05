@@ -106,6 +106,10 @@ export async function sendChatMessage(message: string) {
   });
 }
 
+export async function getDocuments(): Promise<{ success: boolean; documents?: { id: string; type: string; fileUrl: string; expiryDate: string }[] }> {
+  return request("/api/drivers/documents");
+}
+
 export async function uploadDocument(
   type: string, uri: string, expiryDate: string
 ): Promise<{ success: boolean; document?: unknown; message?: string }> {

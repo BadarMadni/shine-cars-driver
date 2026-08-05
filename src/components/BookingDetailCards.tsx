@@ -46,18 +46,19 @@ export function PaymentCard({ booking }: { booking: Booking }) {
         </View>
       ) : isCard ? (
         <Text style={styles.paymentNote}>Payment will be confirmed on completion</Text>
+      ) : booking.status === "completed" ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#F0FDF4", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 }}>
+          <Ionicons name="checkmark-circle" size={16} color="#22C55E" />
+          <Text style={{ fontSize: 13, fontWeight: "700", color: "#16A34A" }}>
+            {booking.cashCollected != null ? `Cash Collected: £${booking.cashCollected.toFixed(2)}` : `Paid: £${(booking.meterFare ?? booking.fare).toFixed(2)}`}
+          </Text>
+        </View>
       ) : (
         <View style={styles.cashBadge}>
           <Ionicons name="alert-circle" size={16} color={COLORS.gold} />
           <Text style={styles.cashText}>{booking.fareType === "meter" && !booking.meterFare
             ? `Estimated: £${(booking.fare * 0.9).toFixed(2)} – £${(booking.fare * 1.1).toFixed(2)}`
             : `Collect £${(booking.meterFare ?? booking.fare).toFixed(2)} cash from customer`}</Text>
-        </View>
-      )}
-      {booking.cashCollected != null && booking.status === "completed" && (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8, backgroundColor: "#F0FDF4", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 }}>
-          <Ionicons name="checkmark-circle" size={16} color="#22C55E" />
-          <Text style={{ fontSize: 13, fontWeight: "700", color: "#16A34A" }}>Cash Collected: £{booking.cashCollected.toFixed(2)}</Text>
         </View>
       )}
     </View>
@@ -159,14 +160,15 @@ export function NotesCard({ booking }: { booking: Booking }) {
   return (<View style={styles.card}><Text style={styles.cardTitle}>Notes from Dispatcher</Text><View style={styles.infoRow}><Ionicons name="document-text-outline" size={16} color={COLORS.gold} /><Text style={[styles.infoText, { flex: 1 }]}>{t}</Text></View></View>);
 }
 
-export function CashInputCard({ booking, cashAmount, setCashAmount }: { booking: Booking; cashAmount: string; setCashAmount: (v: string) => void }) {
+export function CashInputCard({ booking, cashAmount, setCashAmount, onFocus }: { booking: Booking; cashAmount: string; setCashAmount: (v: string) => void; onFocus?: () => void }) {
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Cash Collected</Text>
       <View style={styles.cashInputRow}>
         <Text style={styles.currencySign}>£</Text>
         <TextInput style={styles.cashInput} value={cashAmount} onChangeText={setCashAmount}
-          placeholder={booking.fare.toFixed(2)} placeholderTextColor={COLORS.gray500} keyboardType="decimal-pad" />
+          placeholder={booking.fare.toFixed(2)} placeholderTextColor={COLORS.gray500} keyboardType="decimal-pad"
+          onFocus={onFocus} />
       </View>
       <Text style={styles.cashHint}>Enter amount received from customer</Text>
     </View>

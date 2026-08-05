@@ -1,8 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity,
-  ActivityIndicator, Platform, Alert, Linking,
-  KeyboardAvoidingView,
+  ActivityIndicator, Alert, Linking, Keyboard,
 } from "react-native";
 import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -56,6 +55,7 @@ export default function BookingDetailScreen() {
   const [meterFare, setMeterFare] = useState(0);
   const locationSub = useRef<Location.LocationSubscription | null>(null);
   const lastPos = useRef<{ lat: number; lng: number } | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
 
   const load = async () => {
     try {
@@ -72,7 +72,10 @@ export default function BookingDetailScreen() {
   useEffect(() => { load(); }, [id]);
 
   useEffect(() => {
-    return () => { locationSub.current?.remove(); };
+    const sub = Keyboard.addListener("keyboardDidShow", () => {
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+    });
+    return () => { locationSub.current?.remove(); sub.remove(); };
   }, []);
 
   const startMeter = useCallback(async () => {
@@ -156,12 +159,8 @@ export default function BookingDetailScreen() {
   const isInProgress = booking.status === "in-progress";
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: COLORS.navy }}
-      behavior="padding"
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -200}
-    >
-      <ScrollView style={styles.container} contentContainerStyle={styles.scroll}
+    <View style={{ flex: 1, backgroundColor: COLORS.navy }}>
+      <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive">
         <TouchableOpacity onPress={() => router.back()} style={styles.backRow}>
@@ -186,15 +185,16 @@ export default function BookingDetailScreen() {
         <NotesCard booking={booking} />
 
         {isInProgress && isCash && (
-          <CashInputCard booking={booking} cashAmount={cashAmount} setCashAmount={setCashAmount} />
+          <CashInputCard booking={booking} cashAmount={cashAmount} setCashAmount={setCashAmount}
+            onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300)} />
         )}
 
         <ActionButtons actions={currentActions} updating={updating} onAction={handleAction} />
 
         {isInProgress && <CompleteButton updating={updating} onComplete={handleComplete} />}
 
-        <View style={{ height: isInProgress && isCash ? 200 : 30 }} />
+        <View style={{ height: isInProgress && isCash ? 400 : 30 }} />
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }

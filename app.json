@@ -23,13 +23,17 @@
         "UIBackgroundModes": ["remote-notification"]
       }
     },
+    "androidNavigationBar": {
+      "backgroundColor": "#0F1629",
+      "barStyle": "light-content"
+    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0F1629",
         "foregroundImage": "./assets/adaptive-icon.png"
       },
       "package": "com.shinecars.driver",
-      "softwareKeyboardLayoutMode": "adjustResize",
+      "softwareKeyboardLayoutMode": "adjustPan",
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",

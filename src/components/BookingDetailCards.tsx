@@ -49,7 +49,9 @@ export function PaymentCard({ booking }: { booking: Booking }) {
       ) : (
         <View style={styles.cashBadge}>
           <Ionicons name="alert-circle" size={16} color={COLORS.gold} />
-          <Text style={styles.cashText}>Collect £{booking.fare.toFixed(2)} cash from customer</Text>
+          <Text style={styles.cashText}>{booking.fareType === "meter" && !booking.meterFare
+            ? `Estimated: £${(booking.fare * 0.9).toFixed(2)} – £${(booking.fare * 1.1).toFixed(2)}`
+            : `Collect £${(booking.meterFare ?? booking.fare).toFixed(2)} cash from customer`}</Text>
         </View>
       )}
     </View>
@@ -125,7 +127,9 @@ export function RideInfoCard({ booking }: { booking: Booking }) {
     { icon: "calendar-outline", value: booking.date, label: "Date" },
     { icon: "time-outline", value: booking.time, label: "Time" },
     { icon: "speedometer-outline", value: `${booking.distance?.toFixed(1) || "—"} mi`, label: "Distance" },
-    { icon: "cash-outline", value: `£${booking.fare.toFixed(2)}`, label: "Fare" },
+    { icon: "cash-outline", value: booking.fareType === "meter" && !booking.meterFare
+      ? `£${(booking.fare * 0.9).toFixed(2)} – £${(booking.fare * 1.1).toFixed(2)}`
+      : `£${(booking.meterFare ?? booking.fare).toFixed(2)}`, label: booking.fareType === "meter" && !booking.meterFare ? "Est. Fare" : "Fare" },
   ];
   return (
     <View style={styles.card}>

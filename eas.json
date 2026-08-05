@@ -13,14 +13,5 @@
         "buildType": "app-bundle"
       }
     }
-  },
-  "submit": {
-    "production": {
-      "ios": {
-        "appleId": "MAJAD_SULTANI2009@YAHOO.COM",
-        "ascAppId": "",
-        "appleTeamId": "LT92LCY5G3"
-      }
-    }
   }
 }

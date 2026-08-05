@@ -158,7 +158,8 @@ export default function BookingDetailScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: COLORS.navy }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior="padding"
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -200}
     >
       <ScrollView style={styles.container} contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"

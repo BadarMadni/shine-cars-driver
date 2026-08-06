@@ -106,6 +106,13 @@ export async function sendChatMessage(message: string) {
   });
 }
 
+export async function changePassword(oldPassword: string, newPassword: string) {
+  return request("/api/drivers/change-password", {
+    method: "POST",
+    body: JSON.stringify({ oldPassword, newPassword }),
+  });
+}
+
 export async function getDocuments(): Promise<{ success: boolean; documents?: { id: string; type: string; fileUrl: string; expiryDate: string }[] }> {
   return request("/api/drivers/documents");
 }

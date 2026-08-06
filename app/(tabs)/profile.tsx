@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/constants/theme";
 import { getDriver, clearAuth, saveDriver } from "@/src/lib/auth";
 import { getProfile, updateProfile, deleteAccount } from "@/src/lib/api";
+import ChangePassword from "@/src/components/ChangePassword";
 
 interface Driver {
   name: string; email: string; phone: string; status: string;
@@ -20,23 +21,15 @@ export default function ProfileScreen() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
   useEffect(() => {
     (async () => {
       const cached = await getDriver() as Driver | null;
-      if (cached) {
-        setDriver(cached);
-        setName(cached.name);
-        setPhone(cached.phone);
-      }
+      if (cached) { setDriver(cached); setName(cached.name); setPhone(cached.phone); }
       try {
         const res = await getProfile();
-        if (res.success) {
-          setDriver(res.driver);
-          setName(res.driver.name);
-          setPhone(res.driver.phone);
-          await saveDriver(res.driver);
-        }
+        if (res.success) { setDriver(res.driver); setName(res.driver.name); setPhone(res.driver.phone); await saveDriver(res.driver); }
       } catch {}
     })();
   }, []);
@@ -47,15 +40,8 @@ export default function ProfileScreen() {
     setSaving(true);
     try {
       const res = await updateProfile({ name: name.trim(), phone: phone.trim() });
-      if (res.success) {
-        setDriver(res.driver);
-        await saveDriver(res.driver);
-        setEditing(false);
-        Alert.alert("Success", "Profile updated");
-      }
-    } catch {
-      Alert.alert("Error", "Failed to update profile");
-    }
+      if (res.success) { setDriver(res.driver); await saveDriver(res.driver); setEditing(false); Alert.alert("Success", "Profile updated"); }
+    } catch { Alert.alert("Error", "Failed to update profile"); }
     setSaving(false);
   };
 
@@ -118,12 +104,8 @@ export default function ProfileScreen() {
             <View style={styles.rowText}>
               <Text style={styles.rowLabel}>{r.label}</Text>
               {editing && r.editable ? (
-                <TextInput
-                  style={styles.input}
-                  value={r.label === "Name" ? name : phone}
-                  onChangeText={r.label === "Name" ? setName : setPhone}
-                  placeholderTextColor={COLORS.gray500}
-                />
+                <TextInput style={styles.input} value={r.label === "Name" ? name : phone}
+                  onChangeText={r.label === "Name" ? setName : setPhone} placeholderTextColor={COLORS.gray500} />
               ) : (
                 <Text style={styles.rowValue}>{r.value}</Text>
               )}
@@ -133,13 +115,8 @@ export default function ProfileScreen() {
       </View>
 
       {editing && (
-        <TouchableOpacity onPress={handleSave} disabled={saving}
-          style={styles.saveBtn} activeOpacity={0.8}>
-          {saving ? (
-            <ActivityIndicator color={COLORS.white} />
-          ) : (
-            <Text style={styles.saveText}>Save Changes</Text>
-          )}
+        <TouchableOpacity onPress={handleSave} disabled={saving} style={styles.saveBtn} activeOpacity={0.8}>
+          {saving ? <ActivityIndicator color={COLORS.white} /> : <Text style={styles.saveText}>Save Changes</Text>}
         </TouchableOpacity>
       )}
 
@@ -148,6 +125,13 @@ export default function ProfileScreen() {
         <Text style={styles.docText}>Manage Documents</Text>
         <Ionicons name="chevron-forward" size={18} color={COLORS.gray500} />
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.docBtn} onPress={() => setShowPw(!showPw)} activeOpacity={0.8}>
+        <Ionicons name="lock-closed-outline" size={20} color={COLORS.gold} />
+        <Text style={styles.docText}>Change Password</Text>
+        <Ionicons name={showPw ? "chevron-up" : "chevron-forward"} size={18} color={COLORS.gray500} />
+      </TouchableOpacity>
+      {showPw && <ChangePassword onDone={() => setShowPw(false)} />}
 
       <TouchableOpacity style={styles.docBtn} onPress={() => router.push("/privacy")} activeOpacity={0.8}>
         <Ionicons name="shield-outline" size={20} color={COLORS.gold} />

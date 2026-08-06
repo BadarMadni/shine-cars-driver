@@ -8,11 +8,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/constants/theme";
 import { getDriver, clearAuth, saveDriver } from "@/src/lib/auth";
 import { getProfile, updateProfile, deleteAccount } from "@/src/lib/api";
-import ChangePassword from "@/src/components/ChangePassword";
+import ConfirmModal from "@/src/components/ConfirmModal";
 
-interface Driver {
-  name: string; email: string; phone: string; status: string;
-}
+interface Driver { name: string; email: string; phone: string; status: string }
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -21,7 +19,8 @@ export default function ProfileScreen() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
-  const [showPw, setShowPw] = useState(false);
+  const [showLogout, setShowLogout] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -45,21 +44,15 @@ export default function ProfileScreen() {
     setSaving(false);
   };
 
-  const handleLogout = () => Alert.alert("Logout", "Are you sure?", [
-    { text: "Cancel" },
-    { text: "Logout", style: "destructive", onPress: async () => { await clearAuth(); router.replace("/login"); } },
-  ]);
-
-  const handleDelete = () => Alert.alert("Delete Account", "This will permanently delete your account and all data. This action cannot be undone.", [
-    { text: "Cancel" },
-    { text: "Delete", style: "destructive", onPress: async () => {
-      try {
-        const res = await deleteAccount();
-        if (res.success) { await clearAuth(); router.replace("/login"); }
-        else Alert.alert("Error", res.message || "Failed to delete account");
-      } catch { Alert.alert("Error", "Failed to delete account"); }
-    }},
-  ]);
+  const doLogout = async () => { setShowLogout(false); await clearAuth(); router.replace("/login"); };
+  const doDelete = async () => {
+    setShowDelete(false);
+    try {
+      const res = await deleteAccount();
+      if (res.success) { await clearAuth(); router.replace("/login"); }
+      else Alert.alert("Error", res.message || "Failed to delete account");
+    } catch { Alert.alert("Error", "Failed to delete account"); }
+  };
 
   const rows: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string; editable: boolean }[] = [
     { icon: "person-outline", label: "Name", value: driver?.name || "", editable: true },
@@ -69,90 +62,84 @@ export default function ProfileScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
-      <View style={styles.headerRow}>
-        <Text style={styles.title}>Profile</Text>
+    <ScrollView style={s.container} contentContainerStyle={s.scroll}>
+      <View style={s.headerRow}>
+        <Text style={s.title}>Profile</Text>
         {!editing ? (
-          <TouchableOpacity onPress={() => setEditing(true)} style={styles.editBtn}>
+          <TouchableOpacity onPress={() => setEditing(true)} style={s.editBtn}>
             <Ionicons name="create-outline" size={18} color={COLORS.crimson} />
-            <Text style={styles.editText}>Edit</Text>
+            <Text style={s.editText}>Edit</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity onPress={() => setEditing(false)} style={styles.editBtn}>
+          <TouchableOpacity onPress={() => setEditing(false)} style={s.editBtn}>
             <Ionicons name="close" size={18} color={COLORS.gray400} />
-            <Text style={[styles.editText, { color: COLORS.gray400 }]}>Cancel</Text>
+            <Text style={[s.editText, { color: COLORS.gray400 }]}>Cancel</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      <View style={styles.avatarWrap}>
-        <View style={styles.avatarCircle}>
-          <Ionicons name="person" size={36} color={COLORS.gold} />
-        </View>
-        <Text style={styles.avatarName}>{driver?.name || "Driver"}</Text>
-        <View style={[styles.badge, driver?.status === "approved" ? styles.badgeApproved : styles.badgePending]}>
-          <Text style={[styles.badgeText, driver?.status === "approved" ? styles.badgeTextApproved : styles.badgeTextPending]}>
+      <View style={s.avatarWrap}>
+        <View style={s.avatarCircle}><Ionicons name="person" size={36} color={COLORS.gold} /></View>
+        <Text style={s.avatarName}>{driver?.name || "Driver"}</Text>
+        <View style={[s.badge, driver?.status === "approved" ? s.badgeApproved : s.badgePending]}>
+          <Text style={[s.badgeText, driver?.status === "approved" ? s.badgeTextApproved : s.badgeTextPending]}>
             {driver?.status === "approved" ? "Approved" : "Pending"}
           </Text>
         </View>
       </View>
 
-      <View style={styles.card}>
+      <View style={s.card}>
         {rows.map((r, i) => (
-          <View key={r.label} style={[styles.row, i < rows.length - 1 && styles.rowBorder]}>
+          <View key={r.label} style={[s.row, i < rows.length - 1 && s.rowBorder]}>
             <Ionicons name={r.icon} size={20} color={COLORS.gold} />
-            <View style={styles.rowText}>
-              <Text style={styles.rowLabel}>{r.label}</Text>
+            <View style={s.rowText}>
+              <Text style={s.rowLabel}>{r.label}</Text>
               {editing && r.editable ? (
-                <TextInput style={styles.input} value={r.label === "Name" ? name : phone}
+                <TextInput style={s.input} value={r.label === "Name" ? name : phone}
                   onChangeText={r.label === "Name" ? setName : setPhone} placeholderTextColor={COLORS.gray500} />
-              ) : (
-                <Text style={styles.rowValue}>{r.value}</Text>
-              )}
+              ) : <Text style={s.rowValue}>{r.value}</Text>}
             </View>
           </View>
         ))}
       </View>
 
       {editing && (
-        <TouchableOpacity onPress={handleSave} disabled={saving} style={styles.saveBtn} activeOpacity={0.8}>
-          {saving ? <ActivityIndicator color={COLORS.white} /> : <Text style={styles.saveText}>Save Changes</Text>}
+        <TouchableOpacity onPress={handleSave} disabled={saving} style={s.saveBtn} activeOpacity={0.8}>
+          {saving ? <ActivityIndicator color={COLORS.white} /> : <Text style={s.saveText}>Save Changes</Text>}
         </TouchableOpacity>
       )}
 
-      <TouchableOpacity style={styles.docBtn} onPress={() => router.push("/documents")} activeOpacity={0.8}>
-        <Ionicons name="document-text-outline" size={20} color={COLORS.gold} />
-        <Text style={styles.docText}>Manage Documents</Text>
-        <Ionicons name="chevron-forward" size={18} color={COLORS.gray500} />
-      </TouchableOpacity>
+      {[{ icon: "document-text-outline" as const, label: "Manage Documents", route: "/documents" },
+        { icon: "lock-closed-outline" as const, label: "Change Password", route: "/change-password" },
+        { icon: "shield-outline" as const, label: "Privacy Policy", route: "/privacy" },
+      ].map((item) => (
+        <TouchableOpacity key={item.label} style={s.docBtn} onPress={() => router.push(item.route as never)} activeOpacity={0.8}>
+          <Ionicons name={item.icon} size={20} color={COLORS.gold} />
+          <Text style={s.docText}>{item.label}</Text>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.gray500} />
+        </TouchableOpacity>
+      ))}
 
-      <TouchableOpacity style={styles.docBtn} onPress={() => setShowPw(!showPw)} activeOpacity={0.8}>
-        <Ionicons name="lock-closed-outline" size={20} color={COLORS.gold} />
-        <Text style={styles.docText}>Change Password</Text>
-        <Ionicons name={showPw ? "chevron-up" : "chevron-forward"} size={18} color={COLORS.gray500} />
-      </TouchableOpacity>
-      {showPw && <ChangePassword onDone={() => setShowPw(false)} />}
-
-      <TouchableOpacity style={styles.docBtn} onPress={() => router.push("/privacy")} activeOpacity={0.8}>
-        <Ionicons name="shield-outline" size={20} color={COLORS.gold} />
-        <Text style={styles.docText}>Privacy Policy</Text>
-        <Ionicons name="chevron-forward" size={18} color={COLORS.gray500} />
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
+      <TouchableOpacity style={s.logoutBtn} onPress={() => setShowLogout(true)} activeOpacity={0.8}>
         <Ionicons name="log-out-outline" size={20} color={COLORS.red} />
-        <Text style={styles.logoutText}>Logout</Text>
+        <Text style={s.logoutText}>Logout</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={[s.logoutBtn, { marginTop: 12 }]} onPress={() => setShowDelete(true)} activeOpacity={0.8}>
+        <Ionicons name="trash-outline" size={20} color={COLORS.red} />
+        <Text style={s.logoutText}>Delete Account</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.logoutBtn, { marginTop: 12 }]} onPress={handleDelete} activeOpacity={0.8}>
-        <Ionicons name="trash-outline" size={20} color={COLORS.red} />
-        <Text style={styles.logoutText}>Delete Account</Text>
-      </TouchableOpacity>
+      <ConfirmModal visible={showLogout} icon="log-out-outline" iconColor="#F59E0B" iconBg="rgba(245,158,11,0.15)"
+        title="Logout" message="Are you sure you want to logout?" confirmLabel="Logout" confirmColor={COLORS.crimson}
+        onConfirm={doLogout} onCancel={() => setShowLogout(false)} />
+      <ConfirmModal visible={showDelete} icon="trash-outline" iconColor="#EF4444" iconBg="rgba(239,68,68,0.15)"
+        title="Delete Account" message="This will permanently delete your account and all data. This action cannot be undone."
+        confirmLabel="Delete" confirmColor="#EF4444" onConfirm={doDelete} onCancel={() => setShowDelete(false)} />
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.navy },
   scroll: { padding: 20, paddingTop: Platform.OS === "ios" ? 60 : 40 },
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },

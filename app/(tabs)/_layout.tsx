@@ -29,14 +29,21 @@ export default function TabsLayout() {
   const bottomPad = Math.max(insets.bottom, 10);
 
   const handleAccept = async (id: string) => {
+    const isRecurring = alertBooking?.isRecurring;
     dismissAlert();
-    try { await updateBookingStatus(id, "accepted"); } catch {}
-    router.push(`/booking-detail?id=${id}`);
+    if (isRecurring) {
+      router.push("/(tabs)/recurring");
+    } else {
+      try { await updateBookingStatus(id, "accepted"); } catch {}
+      router.push(`/booking-detail?id=${id}`);
+    }
   };
 
   const handleReject = async (id: string) => {
     dismissAlert();
-    try { await updateBookingStatus(id, "cancelled"); } catch {}
+    if (!alertBooking?.isRecurring) {
+      try { await updateBookingStatus(id, "cancelled"); } catch {}
+    }
   };
 
   return (

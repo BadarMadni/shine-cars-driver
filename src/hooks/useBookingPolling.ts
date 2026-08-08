@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { getBookings } from "@/src/lib/api";
+import { getBookings, getRecurringTemplates } from "@/src/lib/api";
 import { getToken } from "@/src/lib/auth";
 
 const POLL_INTERVAL = 10_000;
@@ -7,13 +7,14 @@ const POLL_INTERVAL = 10_000;
 export interface NewBooking {
   id: string; name: string; pickup: string; dropoff: string;
   vehicle?: string; fare?: number; date?: string; time?: string;
-  fareType?: string;
+  fareType?: string; isRecurring?: boolean; days?: string;
 }
 
 export function useBookingPolling() {
   const [assignedCount, setAssignedCount] = useState(0);
   const [alertBooking, setAlertBooking] = useState<NewBooking | null>(null);
   const knownIds = useRef<Set<string>>(new Set());
+  const knownRecurringIds = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -21,24 +22,48 @@ export function useBookingPolling() {
     try {
       const token = await getToken();
       if (!token) return;
-      const res = await getBookings("assigned");
-      if (!res.success) return;
 
-      const bookings: NewBooking[] = res.bookings || [];
-      setAssignedCount(bookings.length);
+      const [res, recRes] = await Promise.all([
+        getBookings("assigned"),
+        getRecurringTemplates(),
+      ]);
 
-      if (isFirstLoad.current) {
-        bookings.forEach((b) => knownIds.current.add(b.id));
-        isFirstLoad.current = false;
-        return;
+      // Regular bookings
+      if (res.success) {
+        const bookings: NewBooking[] = res.bookings || [];
+        setAssignedCount(bookings.length);
+
+        if (isFirstLoad.current) {
+          bookings.forEach((b) => knownIds.current.add(b.id));
+        } else {
+          const newBookings = bookings.filter((b) => !knownIds.current.has(b.id));
+          bookings.forEach((b) => knownIds.current.add(b.id));
+          if (newBookings.length > 0 && !alertBooking) {
+            setAlertBooking(newBookings[0]);
+          }
+        }
       }
 
-      const newBookings = bookings.filter((b) => !knownIds.current.has(b.id));
-      bookings.forEach((b) => knownIds.current.add(b.id));
-
-      if (newBookings.length > 0 && !alertBooking) {
-        setAlertBooking(newBookings[0]);
+      // Recurring templates
+      if (recRes.success) {
+        const templates = recRes.templates || [];
+        if (isFirstLoad.current) {
+          templates.forEach((t: { id: string }) => knownRecurringIds.current.add(t.id));
+        } else {
+          const newTemplates = templates.filter((t: { id: string }) => !knownRecurringIds.current.has(t.id));
+          templates.forEach((t: { id: string }) => knownRecurringIds.current.add(t.id));
+          if (newTemplates.length > 0 && !alertBooking) {
+            const t = newTemplates[0];
+            setAlertBooking({
+              id: t.id, name: t.name, pickup: t.pickup, dropoff: t.dropoff,
+              vehicle: t.vehicle, fare: t.fare, time: t.time,
+              isRecurring: true, days: t.days,
+            });
+          }
+        }
       }
+
+      if (isFirstLoad.current) isFirstLoad.current = false;
     } catch {}
   }, [alertBooking]);
 

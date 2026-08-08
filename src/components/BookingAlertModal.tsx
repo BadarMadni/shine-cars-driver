@@ -12,7 +12,7 @@ const TIMER_SECONDS = 15;
 interface Booking {
   id: string; name: string; pickup: string; dropoff: string;
   vehicle?: string; fare?: number; date?: string; time?: string;
-  fareType?: string;
+  fareType?: string; isRecurring?: boolean; days?: string;
 }
 
 interface Props {
@@ -92,7 +92,13 @@ export default function BookingAlertModal({ booking, onAccept, onReject }: Props
             </View>
           </View>
 
-          <Text style={s.title}>NEW BOOKING</Text>
+          {booking.isRecurring && (
+            <View style={s.recurBadge}>
+              <Ionicons name="repeat" size={12} color="#A855F7" />
+              <Text style={s.recurText}>RECURRING</Text>
+            </View>
+          )}
+          <Text style={s.title}>{booking.isRecurring ? "RECURRING BOOKING" : "NEW BOOKING"}</Text>
 
           {/* Details */}
           <View style={s.row}>
@@ -133,8 +139,15 @@ export default function BookingAlertModal({ booking, onAccept, onReject }: Props
             </View>
           )}
           {booking.fareType === "meter" && (
-            <View style={{ backgroundColor: "#FFF7ED", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, marginBottom: 6, alignSelf: "flex-start" }}>
-              <Text style={{ fontSize: 11, fontWeight: "700", color: "#EA580C" }}>METER — Cash Only</Text>
+            <View style={{ backgroundColor: "#FFF7ED", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, marginBottom: 6, alignSelf: "flex-start" }}><Text style={{ fontSize: 11, fontWeight: "700", color: "#EA580C" }}>METER — Cash Only</Text></View>
+          )}
+          {booking.isRecurring && booking.days && (
+            <View style={s.row}>
+              <Ionicons name="calendar" size={16} color="#A855F7" />
+              <Text style={s.label}>Days</Text>
+              <Text style={s.value}>
+                {(() => { try { return (JSON.parse(booking.days) as string[]).map((d) => d.slice(0, 3)).join(", "); } catch { return booking.days; } })()}
+              </Text>
             </View>
           )}
           {booking.date && (
@@ -174,6 +187,7 @@ const s = StyleSheet.create({
   timerWrap: { alignItems: "center", marginBottom: 12 },
   timerRing: { width: 64, height: 64, borderRadius: 32, borderWidth: 4, justifyContent: "center", alignItems: "center" },
   timerText: { fontSize: 28, fontWeight: "900", color: COLORS.gold },
+  recurBadge: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: "rgba(168,85,247,0.15)", paddingHorizontal: 12, paddingVertical: 5, borderRadius: 8, alignSelf: "center", marginBottom: 8 },  recurText: { color: "#A855F7", fontSize: 12, fontWeight: "900", letterSpacing: 1 },
   title: { fontSize: 20, fontWeight: "900", color: COLORS.white, textAlign: "center", marginBottom: 16, letterSpacing: 2 },
   row: { flexDirection: "row", alignItems: "flex-start", marginBottom: 10, gap: 8 },
   label: { color: COLORS.gray400, fontSize: 12, fontWeight: "700", width: 65, marginTop: 1 },
@@ -181,7 +195,6 @@ const s = StyleSheet.create({
   progressBg: { height: 4, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 2, marginTop: 16, marginBottom: 20 },
   progressFill: { height: 4, borderRadius: 2 },
   buttons: { flexDirection: "row", gap: 12 },
-  rejectBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: "#EF4444", paddingVertical: 16, borderRadius: 14 },
-  acceptBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: "#22C55E", paddingVertical: 16, borderRadius: 14 },
+  rejectBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: "#EF4444", paddingVertical: 16, borderRadius: 14 },  acceptBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: "#22C55E", paddingVertical: 16, borderRadius: 14 },
   btnText: { color: "#FFF", fontSize: 16, fontWeight: "900", letterSpacing: 1 },
 });

@@ -15,6 +15,7 @@ interface Notification {
 
 const typeIcons: Record<string, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
   booking: { name: "car", color: COLORS.gold },
+  recurring: { name: "repeat", color: "#A855F7" },
   approval: { name: "checkmark-circle", color: COLORS.green },
   rejection: { name: "close-circle", color: COLORS.red },
   info: { name: "information-circle", color: "#3B82F6" },

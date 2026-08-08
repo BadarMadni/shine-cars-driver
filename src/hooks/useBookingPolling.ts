@@ -12,6 +12,7 @@ export interface NewBooking {
 
 export function useBookingPolling() {
   const [assignedCount, setAssignedCount] = useState(0);
+  const [recurringCount, setRecurringCount] = useState(0);
   const [alertBooking, setAlertBooking] = useState<NewBooking | null>(null);
   const knownIds = useRef<Set<string>>(new Set());
   const knownRecurringIds = useRef<Set<string>>(new Set());
@@ -47,6 +48,7 @@ export function useBookingPolling() {
       // Recurring templates
       if (recRes.success) {
         const templates = recRes.templates || [];
+        setRecurringCount(templates.length);
         if (isFirstLoad.current) {
           templates.forEach((t: { id: string }) => knownRecurringIds.current.add(t.id));
         } else {
@@ -75,5 +77,5 @@ export function useBookingPolling() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [poll]);
 
-  return { assignedCount, alertBooking, dismissAlert };
+  return { assignedCount, recurringCount, alertBooking, dismissAlert };
 }

@@ -23,7 +23,7 @@ function TabIcon({ name, color, focused }: { name: keyof typeof Ionicons.glyphMa
 }
 
 export default function TabsLayout() {
-  const { assignedCount, alertBooking, dismissAlert } = useBookingPolling();
+  const { assignedCount, recurringCount, alertBooking, dismissAlert } = useBookingPolling();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const bottomPad = Math.max(insets.bottom, 10);
@@ -81,6 +81,12 @@ export default function TabsLayout() {
         <Tabs.Screen name="recurring" options={{
           title: "Recurring",
           tabBarIcon: ({ color, focused }) => <TabIcon name={focused ? "repeat" : "repeat-outline"} color={color} focused={focused} />,
+          tabBarBadge: recurringCount > 0 ? recurringCount : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: "#A855F7", color: COLORS.white,
+            fontSize: 10, fontWeight: "700", minWidth: 18, height: 18,
+            lineHeight: 18, borderRadius: 9,
+          },
         }} />
         <Tabs.Screen name="profile" options={{
           title: "Profile",

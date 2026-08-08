@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import {
-  View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Platform,
+  View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Platform, Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/constants/theme";
-import { getRecurringTemplates } from "@/src/lib/api";
+import { getRecurringTemplates, acceptRecurringTemplate, rejectRecurringTemplate } from "@/src/lib/api";
 import { s, statusColors } from "@/src/styles/recurringDetail";
 
 interface RideHistory { id: string; status: string; date: string; time: string; fare: number }
@@ -13,6 +13,7 @@ interface Template {
   id: string; name: string; phone: string;
   pickup: string; dropoff: string; time: string;
   fare: number; distance: number; days: string; vehicle: string;
+  driverStatus?: string | null;
   customer?: { companyName: string | null };
   bookings?: RideHistory[];
 }
@@ -24,6 +25,7 @@ export default function RecurringDetailScreen() {
   const router = useRouter();
   const [template, setTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(true);
+  const [acting, setActing] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -37,6 +39,24 @@ export default function RecurringDetailScreen() {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleAccept = async () => {
+    setActing(true);
+    try { await acceptRecurringTemplate(id!); setTemplate((t) => t ? { ...t, driverStatus: "accepted" } : t); } catch {}
+    setActing(false);
+  };
+
+  const handleReject = () => {
+    Alert.alert("Reject Booking", "Are you sure you want to reject this recurring booking?", [
+      { text: "No" },
+      { text: "Yes", style: "destructive", onPress: async () => {
+        setActing(true);
+        try { await rejectRecurringTemplate(id!); } catch {}
+        setActing(false);
+        router.back();
+      }},
+    ]);
+  };
 
   if (loading) return <View style={s.center}><ActivityIndicator color={COLORS.gold} size="large" /></View>;
   if (!template) return (
@@ -91,7 +111,25 @@ export default function RecurringDetailScreen() {
           </View>
           {template.customer?.companyName && <Text style={s.company}>{template.customer.companyName}</Text>}
           <Text style={s.phone}>{template.phone}</Text>
+          {template.driverStatus && (
+            <View style={{ marginTop: 8, alignSelf: "flex-start", backgroundColor: template.driverStatus === "accepted" ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+              <Text style={{ fontSize: 11, fontWeight: "800", color: template.driverStatus === "accepted" ? COLORS.green : COLORS.red }}>{template.driverStatus.toUpperCase()}</Text>
+            </View>
+          )}
         </View>
+
+        {template.driverStatus !== "accepted" && (
+          <View style={{ flexDirection: "row", gap: 10, marginBottom: 12 }}>
+            <TouchableOpacity onPress={handleAccept} disabled={acting} activeOpacity={0.8}
+              style={{ flex: 1, backgroundColor: COLORS.green, borderRadius: 14, paddingVertical: 14, alignItems: "center", opacity: acting ? 0.6 : 1 }}>
+              <Text style={{ color: COLORS.white, fontWeight: "800", fontSize: 14 }}>Accept</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleReject} disabled={acting} activeOpacity={0.8}
+              style={{ flex: 1, backgroundColor: COLORS.red, borderRadius: 14, paddingVertical: 14, alignItems: "center", opacity: acting ? 0.6 : 1 }}>
+              <Text style={{ color: COLORS.white, fontWeight: "800", fontSize: 14 }}>Reject</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={s.card}>
           <View style={s.routeRow}>

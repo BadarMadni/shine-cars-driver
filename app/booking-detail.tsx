@@ -173,7 +173,9 @@ export default function BookingDetailScreen() {
 
         {isInvoice && isInProgress && (
           <View style={{ backgroundColor: "rgba(168,85,247,0.1)", borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "rgba(168,85,247,0.2)" }}>
-            <Text style={{ color: "#A855F7", fontSize: 12, fontWeight: "700", textAlign: "center" }}>Invoice Payment — No cash collection needed</Text>
+            <Text style={{ color: "#A855F7", fontSize: 12, fontWeight: "700", textAlign: "center" }}>
+              {booking.isRecurring ? "Recurring Ride — Will be added to company invoice" : "Invoice Payment — No cash collection needed"}
+            </Text>
           </View>
         )}
         {isInProgress && isCash && !isInvoice && (

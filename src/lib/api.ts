@@ -49,6 +49,13 @@ export async function getRecurringTemplates() {
   return request("/api/drivers/recurring");
 }
 
+export async function rejectRecurringTemplate(recurringId: string) {
+  return request("/api/drivers/recurring/reject", {
+    method: "POST",
+    body: JSON.stringify({ recurringId }),
+  });
+}
+
 export async function updateBookingStatus(
   bookingId: string, status: string, cashCollected?: number,
   meterDistance?: number, meterFare?: number,

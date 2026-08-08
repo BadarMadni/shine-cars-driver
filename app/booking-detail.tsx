@@ -60,8 +60,8 @@ export default function BookingDetailScreen() {
 
   const load = async () => {
     try {
-      const [r1, r2, r3] = await Promise.all([getBookings("active"), getBookings("assigned"), getBookings("completed")]);
-      const found = [...(r1.bookings || []), ...(r2.bookings || []), ...(r3.bookings || [])].find((b: Booking) => b.id === id);
+      const [r1, r2, r3, r4] = await Promise.all([getBookings("active"), getBookings("assigned"), getBookings("completed"), getBookings("recurring")]);
+      const found = [...(r1.bookings || []), ...(r2.bookings || []), ...(r3.bookings || []), ...(r4.bookings || [])].find((b: Booking) => b.id === id);
       if (found) setBooking(found);
     } catch {}
     setLoading(false);

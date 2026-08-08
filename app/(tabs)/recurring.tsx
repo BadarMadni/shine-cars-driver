@@ -82,7 +82,9 @@ export default function RecurringScreen() {
               const st = getStatus(t);
               const c = statusColors[st] || COLORS.gray500;
               return (
-                <View key={t.id} style={styles.card}>
+                <TouchableOpacity key={t.id} activeOpacity={0.7}
+                  onPress={() => router.push(`/recurring-detail?id=${t.id}`)}
+                  style={styles.card}>
                   <View style={styles.cardHeader}>
                     <View style={styles.cardLeft}>
                       <View style={styles.nameRow}>
@@ -126,7 +128,7 @@ export default function RecurringScreen() {
                       <Text style={styles.vehicle}>{(t.vehicle || "car").toUpperCase()}</Text>
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })}
             {todayBookings.length > 0 && (

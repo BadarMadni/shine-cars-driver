@@ -15,6 +15,7 @@ interface Booking {
   pickup: string; dropoff: string; stops?: string | null;
   date: string; time: string;
   fare: number; status: string; vehicle: string;
+  isRecurring?: boolean;
 }
 
 const tabs = [
@@ -114,7 +115,15 @@ export default function BookingsScreen() {
               style={styles.card}>
               <View style={styles.cardHeader}>
                 <View style={styles.cardLeft}>
-                  <Text style={styles.cardName}>{b.name}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <Text style={styles.cardName}>{b.name}</Text>
+                    {b.isRecurring && (
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: "rgba(168,85,247,0.15)", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+                        <Ionicons name="repeat" size={10} color="#A855F7" />
+                        <Text style={{ color: "#A855F7", fontSize: 9, fontWeight: "800" }}>RECURRING</Text>
+                      </View>
+                    )}
+                  </View>
                   <Text style={styles.cardDate}>{b.date} at {b.time}</Text>
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: (statusColors[b.status] || COLORS.gray500) + "20" }]}>

@@ -24,6 +24,7 @@ interface Booking {
   status: string; vehicle: string;
   paymentMethod?: string; paymentStatus?: string;
   fareType?: string; meterDistance?: number | null; meterFare?: number | null;
+  isRecurring?: boolean;
   notes?: string | null;
 }
 
@@ -59,22 +60,15 @@ export default function BookingDetailScreen() {
 
   const load = async () => {
     try {
-      const [r1, r2, r3] = await Promise.all([
-        getBookings("active"), getBookings("assigned"), getBookings("completed"),
-      ]);
-      const all = [...(r1.bookings || []), ...(r2.bookings || []), ...(r3.bookings || [])];
-      const found = all.find((b: Booking) => b.id === id);
+      const [r1, r2, r3] = await Promise.all([getBookings("active"), getBookings("assigned"), getBookings("completed")]);
+      const found = [...(r1.bookings || []), ...(r2.bookings || []), ...(r3.bookings || [])].find((b: Booking) => b.id === id);
       if (found) setBooking(found);
     } catch {}
     setLoading(false);
   };
-
   useEffect(() => { load(); }, [id]);
-
   useEffect(() => {
-    const sub = Keyboard.addListener("keyboardDidShow", () => {
-      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
-    });
+    const sub = Keyboard.addListener("keyboardDidShow", () => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100));
     return () => { locationSub.current?.remove(); sub.remove(); };
   }, []);
 
@@ -116,13 +110,7 @@ export default function BookingDetailScreen() {
 
   const handleAction = async (nextStatus: string) => {
     if (!booking) return;
-    if (nextStatus === "cancelled") {
-      Alert.alert("Cancel Booking", "Are you sure?", [
-        { text: "No" },
-        { text: "Yes", style: "destructive", onPress: () => doUpdate(nextStatus) },
-      ]);
-      return;
-    }
+    if (nextStatus === "cancelled") { Alert.alert("Cancel Booking", "Are you sure?", [{ text: "No" }, { text: "Yes", style: "destructive", onPress: () => doUpdate(nextStatus) }]); return; }
     doUpdate(nextStatus);
   };
 
@@ -130,19 +118,12 @@ export default function BookingDetailScreen() {
     if (!booking) return;
     const isMeter = booking.fareType === "meter";
     const isCash = booking.paymentMethod === "cash";
-    if (isMeter && meterRunning) {
-      Alert.alert("Stop Meter", "Please stop the meter before completing.");
-      return;
-    }
-    if (isCash && !cashAmount.trim()) {
-      Alert.alert("Cash Amount", "Please enter the cash amount collected.");
-      return;
-    }
+    const isInv = booking.paymentMethod === "invoice";
+    if (isMeter && meterRunning) { Alert.alert("Stop Meter", "Please stop the meter before completing."); return; }
+    if (isInv) { doUpdate("completed"); return; }
+    if (isCash && !cashAmount.trim()) { Alert.alert("Cash Amount", "Please enter the cash amount collected."); return; }
     const amount = isCash ? parseFloat(cashAmount) : undefined;
-    if (isCash && (isNaN(amount!) || amount! <= 0)) {
-      Alert.alert("Invalid Amount", "Please enter a valid amount.");
-      return;
-    }
+    if (isCash && (isNaN(amount!) || amount! <= 0)) { Alert.alert("Invalid Amount", "Please enter a valid amount."); return; }
     doUpdate("completed", amount, isMeter ? meterDistance : undefined, isMeter ? meterFare : undefined);
   };
 
@@ -156,6 +137,7 @@ export default function BookingDetailScreen() {
 
   const currentActions = actions[booking.status] || [];
   const isCash = booking.paymentMethod === "cash";
+  const isInvoice = booking.paymentMethod === "invoice";
   const isInProgress = booking.status === "in-progress";
 
   return (
@@ -170,7 +152,12 @@ export default function BookingDetailScreen() {
 
         <View style={styles.statusCard}>
           <Text style={styles.statusLabel}>Status</Text>
-          <Text style={styles.statusValue}>{booking.status.toUpperCase()}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Text style={styles.statusValue}>{booking.status.toUpperCase()}</Text>
+            {booking.isRecurring && (<View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(168,85,247,0.15)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 }}>
+              <Ionicons name="repeat" size={12} color="#A855F7" /><Text style={{ color: "#A855F7", fontSize: 10, fontWeight: "800" }}>RECURRING</Text>
+            </View>)}
+          </View>
         </View>
 
         <PaymentCard booking={booking} />
@@ -178,13 +165,18 @@ export default function BookingDetailScreen() {
         <TripCard booking={booking} currentStopIndex={currentStopIndex}
           onNextStop={() => setCurrentStopIndex((i) => i + 1)} />
         <RideInfoCard booking={booking} />
-        {booking.fareType === "meter" && isInProgress && (
+        {booking.fareType === "meter" && isInProgress && !isInvoice && (
           <MeterCard meterRunning={meterRunning} meterDistance={meterDistance}
             meterFare={meterFare} onStart={startMeter} onStop={stopMeter} />
         )}
         <NotesCard booking={booking} />
 
-        {isInProgress && isCash && (
+        {isInvoice && isInProgress && (
+          <View style={{ backgroundColor: "rgba(168,85,247,0.1)", borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "rgba(168,85,247,0.2)" }}>
+            <Text style={{ color: "#A855F7", fontSize: 12, fontWeight: "700", textAlign: "center" }}>Invoice Payment — No cash collection needed</Text>
+          </View>
+        )}
+        {isInProgress && isCash && !isInvoice && (
           <CashInputCard booking={booking} cashAmount={cashAmount} setCashAmount={setCashAmount}
             onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300)} />
         )}
@@ -193,7 +185,7 @@ export default function BookingDetailScreen() {
 
         {isInProgress && <CompleteButton updating={updating} onComplete={handleComplete} />}
 
-        <View style={{ height: isInProgress && isCash ? 400 : 30 }} />
+        <View style={{ height: isInProgress && isCash && !isInvoice ? 400 : 30 }} />
       </ScrollView>
     </View>
   );

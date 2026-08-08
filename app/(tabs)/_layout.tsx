@@ -71,6 +71,10 @@ export default function TabsLayout() {
             lineHeight: 18, borderRadius: 9,
           },
         }} />
+        <Tabs.Screen name="recurring" options={{
+          title: "Recurring",
+          tabBarIcon: ({ color, focused }) => <TabIcon name={focused ? "repeat" : "repeat-outline"} color={color} focused={focused} />,
+        }} />
         <Tabs.Screen name="profile" options={{
           title: "Profile",
           tabBarIcon: ({ color, focused }) => <TabIcon name={focused ? "person" : "person-outline"} color={color} focused={focused} />,

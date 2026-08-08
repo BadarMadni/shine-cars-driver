@@ -45,6 +45,10 @@ export async function getBookings(filter: string) {
   return request(`/api/drivers/bookings?filter=${filter}`);
 }
 
+export async function getRecurringTemplates() {
+  return request("/api/drivers/recurring");
+}
+
 export async function updateBookingStatus(
   bookingId: string, status: string, cashCollected?: number,
   meterDistance?: number, meterFare?: number,

@@ -5,7 +5,7 @@ import { COLORS } from "@/src/constants/theme";
 import { useBookingPolling } from "@/src/hooks/useBookingPolling";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { updateBookingStatus, rejectRecurringTemplate } from "@/src/lib/api";
+import { updateBookingStatus, acceptRecurringTemplate, rejectRecurringTemplate } from "@/src/lib/api";
 import BookingAlertModal from "@/src/components/BookingAlertModal";
 
 function TabIcon({ name, color, focused }: { name: keyof typeof Ionicons.glyphMap; color: string; focused: boolean }) {
@@ -32,6 +32,7 @@ export default function TabsLayout() {
     const isRecurring = alertBooking?.isRecurring;
     dismissAlert();
     if (isRecurring) {
+      try { await acceptRecurringTemplate(id); } catch {}
       router.push("/(tabs)/recurring");
     } else {
       try { await updateBookingStatus(id, "accepted"); } catch {}

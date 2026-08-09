@@ -86,7 +86,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused }) => <TabIcon name={focused ? "repeat" : "repeat-outline"} color={color} focused={focused} />,
           tabBarBadge: recurringCount > 0 ? recurringCount : undefined,
           tabBarBadgeStyle: {
-            backgroundColor: "#A855F7", color: COLORS.white,
+            backgroundColor: COLORS.crimson, color: COLORS.white,
             fontSize: 10, fontWeight: "700", minWidth: 18, height: 18,
             lineHeight: 18, borderRadius: 9,
           },

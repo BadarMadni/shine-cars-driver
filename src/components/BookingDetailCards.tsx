@@ -23,23 +23,25 @@ interface Booking {
 export function PaymentCard({ booking }: { booking: Booking }) {
   const isCash = booking.paymentMethod === "cash";
   const isCard = booking.paymentMethod === "card";
+  const isInvoice = booking.paymentMethod === "invoice";
   const isPaid = booking.paymentStatus === "paid";
   const isMeter = booking.fareType === "meter";
   return (
-    <View style={[styles.card, isCard && isPaid ? styles.paidCard : isCash ? styles.cashCard : null]}>
+    <View style={[styles.card, isCard && isPaid ? styles.paidCard : isInvoice ? styles.invoiceCard : isCash ? styles.cashCard : null]}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <Text style={styles.cardTitle}>Payment</Text>
-        {isMeter && (
-          <View style={{ backgroundColor: "#FFF7ED", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 }}>
-            <Text style={{ fontSize: 10, fontWeight: "700", color: "#EA580C" }}>METER</Text>
-          </View>
-        )}
+        {isMeter && <View style={{ backgroundColor: "#FFF7ED", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 }}><Text style={{ fontSize: 10, fontWeight: "700", color: "#EA580C" }}>METER</Text></View>}
       </View>
       <View style={styles.paymentRow}>
-        <Ionicons name={isCard ? "card-outline" : "cash-outline"} size={20} color={isCard ? "#06B6D4" : COLORS.gold} />
-        <Text style={styles.paymentMethod}>{isCard ? "Card Payment" : "Cash Payment"}</Text>
+        <Ionicons name={isInvoice ? "document-text-outline" : isCard ? "card-outline" : "cash-outline"} size={20} color={isInvoice ? "#A855F7" : isCard ? "#06B6D4" : COLORS.gold} />
+        <Text style={styles.paymentMethod}>{isInvoice ? "Invoice Payment" : isCard ? "Card Payment" : "Cash Payment"}</Text>
       </View>
-      {isCard && isPaid ? (
+      {isInvoice ? (
+        <View style={styles.invoiceBadge}>
+          <Ionicons name="checkmark-circle" size={16} color="#A855F7" />
+          <Text style={styles.invoiceText}>{booking.status === "completed" ? "Added to company invoice" : "Will be added to company invoice"}</Text>
+        </View>
+      ) : isCard && isPaid ? (
         <View style={styles.paidBadge}>
           <Ionicons name="checkmark-circle" size={16} color={COLORS.green} />
           <Text style={styles.paidText}>Paid by Card</Text>
@@ -47,11 +49,9 @@ export function PaymentCard({ booking }: { booking: Booking }) {
       ) : isCard ? (
         <Text style={styles.paymentNote}>Payment will be confirmed on completion</Text>
       ) : booking.status === "completed" ? (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#F0FDF4", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 }}>
+        <View style={styles.paidBadge}>
           <Ionicons name="checkmark-circle" size={16} color="#22C55E" />
-          <Text style={{ fontSize: 13, fontWeight: "700", color: "#16A34A" }}>
-            {booking.cashCollected != null ? `Cash Collected: £${booking.cashCollected.toFixed(2)}` : `Paid: £${(booking.meterFare ?? booking.fare).toFixed(2)}`}
-          </Text>
+          <Text style={[styles.paidText, { color: "#16A34A" }]}>{booking.cashCollected != null ? `Cash Collected: £${booking.cashCollected.toFixed(2)}` : `Paid: £${(booking.meterFare ?? booking.fare).toFixed(2)}`}</Text>
         </View>
       ) : (
         <View style={styles.cashBadge}>
@@ -88,15 +88,9 @@ export function TripCard({ booking, currentStopIndex, onNextStop }: {
   const showNav = ["accepted", "arrived", "in-progress"].includes(booking.status);
   const stopIdx = currentStopIndex ?? 0;
 
-  let navTo = booking.dropoff;
-  let navLabel = "Navigate to Drop-off";
-  if (booking.status === "accepted") {
-    navTo = booking.pickup;
-    navLabel = "Navigate to Pickup";
-  } else if (parsedStops.length > 0 && stopIdx < parsedStops.length) {
-    navTo = parsedStops[stopIdx];
-    navLabel = `Navigate to Stop ${stopIdx + 1}`;
-  }
+  let navTo = booking.dropoff, navLabel = "Navigate to Drop-off";
+  if (booking.status === "accepted") { navTo = booking.pickup; navLabel = "Navigate to Pickup"; }
+  else if (parsedStops.length > 0 && stopIdx < parsedStops.length) { navTo = parsedStops[stopIdx]; navLabel = `Navigate to Stop ${stopIdx + 1}`; }
 
   const TripPoint = ({ color, label, address }: { color: string; label: string; address: string }) => (
     <View style={styles.tripRow}>
@@ -175,26 +169,15 @@ export function CashInputCard({ booking, cashAmount, setCashAmount, onFocus }: {
   );
 }
 
-interface ActionButton {
-  label: string; next: string; icon: string; color: string;
-}
-
-export function ActionButtons({
-  actions, updating, onAction,
-}: { actions: ActionButton[]; updating: boolean; onAction: (next: string) => void }) {
+export function ActionButtons({ actions, updating, onAction }: {
+  actions: { label: string; next: string; icon: string; color: string }[]; updating: boolean; onAction: (next: string) => void;
+}) {
   if (actions.length === 0) return null;
   return (
     <View style={styles.actionsWrap}>
       {actions.map((a) => (
-        <TouchableOpacity key={a.next} activeOpacity={0.8}
-          onPress={() => onAction(a.next)} disabled={updating}
-          style={[styles.actionBtn, { backgroundColor: a.color }]}>
-          {updating ? <ActivityIndicator color={COLORS.white} /> : (
-            <>
-              <Ionicons name={a.icon as keyof typeof Ionicons.glyphMap} size={20} color={COLORS.white} />
-              <Text style={styles.actionText}>{a.label}</Text>
-            </>
-          )}
+        <TouchableOpacity key={a.next} activeOpacity={0.8} onPress={() => onAction(a.next)} disabled={updating} style={[styles.actionBtn, { backgroundColor: a.color }]}>
+          {updating ? <ActivityIndicator color={COLORS.white} /> : (<><Ionicons name={a.icon as keyof typeof Ionicons.glyphMap} size={20} color={COLORS.white} /><Text style={styles.actionText}>{a.label}</Text></>)}
         </TouchableOpacity>
       ))}
     </View>

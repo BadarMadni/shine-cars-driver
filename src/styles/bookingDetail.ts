@@ -22,6 +22,7 @@ export default StyleSheet.create({
   },
   paidCard: { borderColor: "rgba(34,197,94,0.3)", backgroundColor: "rgba(34,197,94,0.08)" },
   cashCard: { borderColor: "rgba(245,166,35,0.3)", backgroundColor: "rgba(245,166,35,0.08)" },
+  invoiceCard: { borderColor: "rgba(168,85,247,0.3)", backgroundColor: "rgba(168,85,247,0.08)" },
   cardTitle: { color: COLORS.white, fontSize: 15, fontWeight: "700", marginBottom: 12 },
   paymentRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 },
   paymentMethod: { color: COLORS.white, fontSize: 15, fontWeight: "600" },
@@ -60,4 +61,6 @@ export default StyleSheet.create({
     gap: 8, backgroundColor: "#3B82F6", borderRadius: 12, paddingVertical: 12, marginTop: 14,
   },
   navBtnText: { color: COLORS.white, fontWeight: "700", fontSize: 14 },
+  invoiceBadge: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(168,85,247,0.15)", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 },
+  invoiceText: { fontSize: 13, fontWeight: "700", color: "#A855F7" },
 });

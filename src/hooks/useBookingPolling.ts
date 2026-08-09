@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { getBookings, getRecurringTemplates } from "@/src/lib/api";
 import { getToken } from "@/src/lib/auth";
+import { scheduleBookingReminder } from "@/src/lib/notifications";
 
 const POLL_INTERVAL = 10_000;
 
@@ -42,6 +43,9 @@ export function useBookingPolling() {
           if (newBookings.length > 0 && !alertBooking) {
             setAlertBooking(newBookings[0]);
           }
+          newBookings.forEach((b) => {
+            if (b.time && b.date) scheduleBookingReminder(b.id, b.time, b.date, b.pickup);
+          });
         }
       }
 

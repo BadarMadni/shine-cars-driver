@@ -64,3 +64,19 @@ export async function registerForPushNotifications(): Promise<string | null> {
     return null;
   }
 }
+
+export async function scheduleBookingReminder(bookingId: string, time: string, date: string, pickup: string) {
+  try {
+    const notif = await getNotifications();
+    if (!notif) return;
+    const [h, m] = time.split(":").map(Number);
+    const trigger = new Date(date + "T00:00:00");
+    trigger.setHours(h, m - 30, 0, 0);
+    if (trigger.getTime() <= Date.now()) return; // skip past
+    await notif.scheduleNotificationAsync({
+      content: { title: "Ride in 30 minutes", body: `Pickup: ${pickup} at ${time}`, data: { bookingId } },
+      trigger: { type: "date" as any, date: trigger },
+      identifier: `reminder-${bookingId}`,
+    });
+  } catch {}
+}

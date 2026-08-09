@@ -14,6 +14,7 @@ interface Template {
   pickup: string; dropoff: string; time: string;
   fare: number; distance: number; days: string; vehicle: string;
   driverStatus?: string | null;
+  frequency?: string; startDate?: string | null; endDate?: string | null;
   customer?: { companyName: string | null };
   bookings?: RideHistory[];
 }
@@ -108,6 +109,9 @@ export default function RecurringDetailScreen() {
               <Ionicons name="repeat" size={12} color="#A855F7" />
               <Text style={s.recurText}>RECURRING</Text>
             </View>
+            <View style={{ backgroundColor: (template.frequency === "monthly" ? "#A855F7" : "#3B82F6") + "20", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 }}>
+              <Text style={{ color: template.frequency === "monthly" ? "#A855F7" : "#3B82F6", fontSize: 10, fontWeight: "800" }}>{(template.frequency || "weekly").toUpperCase()}</Text>
+            </View>
           </View>
           {template.customer?.companyName && <Text style={s.company}>{template.customer.companyName}</Text>}
           <Text style={s.phone}>{template.phone}</Text>
@@ -159,6 +163,12 @@ export default function RecurringDetailScreen() {
               );
             })}
           </View>
+          {template.startDate && (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 }}>
+              <Ionicons name="calendar-outline" size={14} color={COLORS.gray500} />
+              <Text style={{ color: COLORS.gray400, fontSize: 12 }}>{template.startDate} → {template.endDate || "No end date"}</Text>
+            </View>
+          )}
           <Text style={s.statsText}>{completedCount}/{totalRides} rides completed</Text>
         </View>
 

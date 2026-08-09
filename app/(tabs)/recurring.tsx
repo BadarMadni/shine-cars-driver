@@ -16,6 +16,7 @@ interface Template {
   pickup: string; dropoff: string; stops?: string | null;
   time: string; fare: number; distance: number;
   days: string; vehicle: string; isActive: boolean;
+  frequency?: string; startDate?: string | null; endDate?: string | null;
   customer?: { companyName: string | null };
   bookings?: { id: string; status: string; date: string }[];
 }
@@ -100,6 +101,16 @@ export default function RecurringScreen() {
                       <View style={[styles.statusDot, { backgroundColor: c }]} />
                       <Text style={[styles.statusText, { color: c }]}>{st.charAt(0).toUpperCase() + st.slice(1)}</Text>
                     </View>
+                  </View>
+                  <View style={{ flexDirection: "row", gap: 6, marginBottom: 10 }}>
+                    <View style={{ backgroundColor: (t.frequency === "monthly" ? "#A855F7" : "#3B82F6") + "20", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+                      <Text style={{ color: t.frequency === "monthly" ? "#A855F7" : "#3B82F6", fontSize: 10, fontWeight: "800" }}>{(t.frequency || "weekly").toUpperCase()}</Text>
+                    </View>
+                    {t.startDate && (
+                      <View style={{ backgroundColor: "rgba(255,255,255,0.06)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+                        <Text style={{ color: COLORS.gray400, fontSize: 10 }}>{t.startDate} → {t.endDate || "∞"}</Text>
+                      </View>
+                    )}
                   </View>
                   <View style={styles.cardBody}>
                     <View style={styles.locationRow}>

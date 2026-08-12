@@ -27,6 +27,7 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [todayJobs, setTodayJobs] = useState(0);
   const [totalJobs, setTotalJobs] = useState(0);
+  const [earnings, setEarnings] = useState(0);
 
   useLocationTracking(available);
   useEffect(() => {
@@ -52,12 +53,12 @@ export default function DashboardScreen() {
       }
     } catch {}
     try {
-      const active = await getBookings("active");
       const completed = await getBookings("completed");
-      const all = [...(active.bookings || []), ...(completed.bookings || [])];
-      setTotalJobs(all.length);
+      const done = completed.bookings || [];
+      setTotalJobs(done.length);
+      setEarnings(done.reduce((sum: number, b: { fare?: number }) => sum + (b.fare || 0), 0));
       const today = new Date().toLocaleDateString("en-GB");
-      setTodayJobs(all.filter((b: { date: string }) => b.date === today).length);
+      setTodayJobs(done.filter((b: { date: string }) => b.date === today).length);
     } catch {}
   };
 
@@ -103,7 +104,7 @@ export default function DashboardScreen() {
 
   const stats = [
     { icon: "today-outline" as const, label: "Today's Rides", value: `${todayJobs}`, color: COLORS.gold, bg: "rgba(245,166,35,0.1)" },
-    { icon: "cash-outline" as const, label: "Earnings", value: "£0.00", color: COLORS.crimson, bg: "rgba(204,34,41,0.1)" },
+    { icon: "cash-outline" as const, label: "Earnings", value: `£${earnings.toFixed(2)}`, color: COLORS.crimson, bg: "rgba(204,34,41,0.1)" },
     { icon: "star-outline" as const, label: "Rating", value: "5.0", color: COLORS.orange, bg: "rgba(249,115,22,0.1)" },
     { icon: "car-outline" as const, label: "Total Rides", value: `${totalJobs}`, color: COLORS.green, bg: "rgba(34,197,94,0.1)" },
   ];

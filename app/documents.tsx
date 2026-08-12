@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import {
-  View, Text, TouchableOpacity, StyleSheet, ScrollView,
-  ActivityIndicator, Image, Platform, TextInput, Alert,
+  View, Text, TouchableOpacity, ScrollView,
+  ActivityIndicator, Image, TextInput,
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS } from "@/src/constants/theme";
+import { COLORS } from "@/src/constants/theme"; // used in JSX
 import { uploadDocument, getDocuments } from "@/src/lib/api";
 import { saveDriver, getDriver } from "@/src/lib/auth";
+import { styles } from "@/src/styles/documents";
+import ResultModal, { Result } from "@/src/components/ResultModal";
 
 const DOC_TYPES = [
   { key: "driver_licence", label: "Driver Licence", icon: "card-outline" as const },
@@ -36,6 +38,7 @@ export default function DocumentsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<Result>(null);
 
   useEffect(() => {
     (async () => {
@@ -82,55 +85,44 @@ export default function DocumentsScreen() {
   };
 
   const hasNewUploads = DOC_TYPES.some((d) => docs[d.key].uri && !docs[d.key].uploaded);
-  const allHaveDocs = DOC_TYPES.every((d) => docs[d.key].remoteUrl || docs[d.key].uri);
-  const allHaveExpiry = DOC_TYPES.every((d) => docs[d.key].expiry);
 
   const handleSubmit = async () => {
-    const missing = DOC_TYPES.filter((d) => !docs[d.key].remoteUrl && !docs[d.key].uri);
-    if (missing.length > 0) {
-      setError("Please upload all documents with expiry dates.");
-      return;
+    if (DOC_TYPES.some((d) => !docs[d.key].remoteUrl && !docs[d.key].uri)) {
+      setError("Please upload all documents with expiry dates."); return;
     }
-    const missingExpiry = DOC_TYPES.filter((d) => !docs[d.key].expiry);
-    if (missingExpiry.length > 0) {
-      setError("Please add expiry dates for all documents.");
-      return;
+    if (DOC_TYPES.some((d) => !docs[d.key].expiry)) {
+      setError("Please add expiry dates for all documents."); return;
     }
     setError("");
     setSubmitting(true);
 
-    for (const doc of DOC_TYPES) {
-      const state = docs[doc.key];
-      if (state.uri && !state.uploaded) {
-        setDocs((prev) => ({ ...prev, [doc.key]: { ...prev[doc.key], uploading: true } }));
-        try {
-          await uploadDocument(doc.key, state.uri, state.expiry);
-          setDocs((prev) => ({ ...prev, [doc.key]: { ...prev[doc.key], uploaded: true, uploading: false, remoteUrl: state.uri, editing: false } }));
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : "Unknown error";
-          setError(`Failed to upload ${doc.label}: ${msg}`);
-          setDocs((prev) => ({ ...prev, [doc.key]: { ...prev[doc.key], uploading: false } }));
-          setSubmitting(false);
-          return;
-        }
-      }
+    const toUpload = DOC_TYPES.filter((d) => docs[d.key].uri && !docs[d.key].uploaded);
+    toUpload.forEach((d) => setDocs((prev) => ({ ...prev, [d.key]: { ...prev[d.key], uploading: true } })));
+    try {
+      await Promise.all(toUpload.map(async (doc) => {
+        const state = docs[doc.key];
+        await uploadDocument(doc.key, state.uri!, state.expiry);
+        setDocs((prev) => ({ ...prev, [doc.key]: { ...prev[doc.key], uploaded: true, uploading: false, remoteUrl: state.uri, editing: false } }));
+      }));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      setResult({ type: "error", message: `Upload failed: ${msg}` });
+      toUpload.forEach((d) => setDocs((prev) => ({ ...prev, [d.key]: { ...prev[d.key], uploading: false } })));
+      setSubmitting(false);
+      return;
     }
 
     const driver = await getDriver() as Record<string, unknown> | null;
     if (driver) await saveDriver({ ...driver, status: "pending" });
     setSubmitting(false);
-    Alert.alert("Success", "Documents submitted successfully.", [
-      { text: "OK", onPress: () => router.back() },
-    ]);
+    setResult({ type: "success", message: "Documents submitted successfully!" });
   };
 
-  if (loading) {
-    return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator color={COLORS.gold} size="large" />
-      </View>
-    );
-  }
+  if (loading) return (
+    <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <ActivityIndicator color={COLORS.gold} size="large" />
+    </View>
+  );
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
@@ -155,9 +147,7 @@ export default function DocumentsScreen() {
             </View>
 
             {hasImage ? (
-              <TouchableOpacity activeOpacity={0.9} onPress={() => {}}>
-                <Image source={{ uri: imageSource! }} style={styles.preview} resizeMode="cover" />
-              </TouchableOpacity>
+              <Image source={{ uri: imageSource! }} style={styles.preview} resizeMode="cover" />
             ) : (
               <View style={styles.uploadArea}>
                 <TouchableOpacity style={styles.uploadBtn} onPress={() => pickImage(doc.key)}>
@@ -170,7 +160,6 @@ export default function DocumentsScreen() {
                 </TouchableOpacity>
               </View>
             )}
-
             {hasImage && (
               <View style={styles.actionRow}>
                 <TouchableOpacity onPress={() => pickImage(doc.key)} style={styles.changeBtn}>
@@ -183,18 +172,10 @@ export default function DocumentsScreen() {
                 </TouchableOpacity>
               </View>
             )}
-
             <View style={styles.expiryWrap}>
               <Ionicons name="calendar-outline" size={18} color={COLORS.gray400} />
-              <TextInput
-                style={styles.expiryInput}
-                placeholder="Expiry: DD/MM/YYYY"
-                placeholderTextColor={COLORS.gray400}
-                value={state.expiry}
-                onChangeText={(v) => setExpiry(doc.key, v)}
-                keyboardType="number-pad"
-                maxLength={10}
-              />
+              <TextInput style={styles.expiryInput} placeholder="Expiry: DD/MM/YYYY" placeholderTextColor={COLORS.gray400}
+                value={state.expiry} onChangeText={(v) => setExpiry(doc.key, v)} keyboardType="number-pad" maxLength={10} />
             </View>
           </View>
         );
@@ -210,44 +191,7 @@ export default function DocumentsScreen() {
       )}
 
       <View style={{ height: 40 }} />
+      <ResultModal result={result} onClose={() => { setResult(null); if (result?.type === "success") router.back(); }} />
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.navy },
-  scroll: { padding: 24, paddingTop: Platform.OS === "ios" ? 60 : 40 },
-  headerRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 4 },
-  backBtn: { padding: 4 },
-  title: { color: COLORS.white, fontSize: 22, fontWeight: "800" },
-  subtitle: { color: COLORS.gray400, fontSize: 14, marginBottom: 24 },
-  card: {
-    backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 16, padding: 16,
-    marginBottom: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)",
-  },
-  cardHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
-  cardTitle: { color: COLORS.white, fontSize: 15, fontWeight: "700", flex: 1 },
-  preview: { width: "100%", height: 180, borderRadius: 12, marginBottom: 8 },
-  uploadArea: { flexDirection: "row", gap: 12, marginBottom: 8 },
-  uploadBtn: {
-    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
-    backgroundColor: "rgba(204,34,41,0.1)", borderRadius: 12, paddingVertical: 14,
-    borderWidth: 1, borderColor: "rgba(204,34,41,0.3)", borderStyle: "dashed",
-  },
-  uploadText: { color: COLORS.crimson, fontSize: 14, fontWeight: "600" },
-  actionRow: { flexDirection: "row", gap: 12, marginBottom: 8 },
-  changeBtn: { flexDirection: "row", alignItems: "center", gap: 6 },
-  changeText: { color: COLORS.gold, fontSize: 13, fontWeight: "600" },
-  expiryWrap: {
-    flexDirection: "row", alignItems: "center", backgroundColor: "rgba(255,255,255,0.06)",
-    borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, gap: 10,
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
-  },
-  expiryInput: { flex: 1, color: COLORS.white, fontSize: 14 },
-  error: { color: COLORS.red, fontSize: 13, textAlign: "center", marginBottom: 12 },
-  btn: {
-    backgroundColor: COLORS.crimson, borderRadius: 12, paddingVertical: 16,
-    alignItems: "center", marginTop: 8,
-  },
-  btnText: { color: COLORS.white, fontSize: 16, fontWeight: "700" },
-});

@@ -10,7 +10,7 @@ import { getDriver, clearAuth, saveDriver } from "@/src/lib/auth";
 import { getProfile, updateProfile, deleteAccount } from "@/src/lib/api";
 import ConfirmModal from "@/src/components/ConfirmModal";
 
-interface Driver { name: string; email: string; phone: string; status: string }
+interface Driver { name: string; email: string; phone: string; status: string; vehicleMake?: string; vehicleColor?: string; vehicleReg?: string }
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -18,6 +18,9 @@ export default function ProfileScreen() {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [vMake, setVMake] = useState("");
+  const [vColor, setVColor] = useState("");
+  const [vReg, setVReg] = useState("");
   const [saving, setSaving] = useState(false);
   const [showLogout, setShowLogout] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -25,10 +28,10 @@ export default function ProfileScreen() {
   useEffect(() => {
     (async () => {
       const cached = await getDriver() as Driver | null;
-      if (cached) { setDriver(cached); setName(cached.name); setPhone(cached.phone); }
+      if (cached) { setDriver(cached); setName(cached.name); setPhone(cached.phone); setVMake(cached.vehicleMake || ""); setVColor(cached.vehicleColor || ""); setVReg(cached.vehicleReg || ""); }
       try {
         const res = await getProfile();
-        if (res.success) { setDriver(res.driver); setName(res.driver.name); setPhone(res.driver.phone); await saveDriver(res.driver); }
+        if (res.success) { setDriver(res.driver); setName(res.driver.name); setPhone(res.driver.phone); setVMake(res.driver.vehicleMake || ""); setVColor(res.driver.vehicleColor || ""); setVReg(res.driver.vehicleReg || ""); await saveDriver(res.driver); }
       } catch {}
     })();
   }, []);
@@ -38,7 +41,7 @@ export default function ProfileScreen() {
     if (!phone.trim()) return Alert.alert("Error", "Phone is required");
     setSaving(true);
     try {
-      const res = await updateProfile({ name: name.trim(), phone: phone.trim() });
+      const res = await updateProfile({ name: name.trim(), phone: phone.trim(), vehicleMake: vMake.trim(), vehicleColor: vColor.trim(), vehicleReg: vReg.trim().toUpperCase() });
       if (res.success) { setDriver(res.driver); await saveDriver(res.driver); setEditing(false); Alert.alert("Success", "Profile updated"); }
     } catch { Alert.alert("Error", "Failed to update profile"); }
     setSaving(false);
@@ -59,6 +62,9 @@ export default function ProfileScreen() {
     { icon: "mail-outline", label: "Email", value: driver?.email || "", editable: false },
     { icon: "call-outline", label: "Phone", value: driver?.phone || "", editable: true },
     { icon: "shield-checkmark-outline", label: "Status", value: (driver?.status || "").toUpperCase(), editable: false },
+    { icon: "car-outline", label: "Vehicle", value: driver?.vehicleMake || "—", editable: true },
+    { icon: "color-palette-outline", label: "Color", value: driver?.vehicleColor || "—", editable: true },
+    { icon: "pricetag-outline", label: "Reg No.", value: driver?.vehicleReg || "—", editable: true },
   ];
 
   return (
@@ -95,8 +101,9 @@ export default function ProfileScreen() {
             <View style={s.rowText}>
               <Text style={s.rowLabel}>{r.label}</Text>
               {editing && r.editable ? (
-                <TextInput style={s.input} value={r.label === "Name" ? name : phone}
-                  onChangeText={r.label === "Name" ? setName : setPhone} placeholderTextColor={COLORS.gray500} />
+                <TextInput style={s.input} value={r.label === "Name" ? name : r.label === "Phone" ? phone : r.label === "Vehicle" ? vMake : r.label === "Color" ? vColor : vReg}
+                  onChangeText={r.label === "Name" ? setName : r.label === "Phone" ? setPhone : r.label === "Vehicle" ? setVMake : r.label === "Color" ? setVColor : setVReg}
+                  autoCapitalize={r.label === "Reg No." ? "characters" : "words"} placeholderTextColor={COLORS.gray500} />
               ) : <Text style={s.rowValue}>{r.value}</Text>}
             </View>
           </View>

@@ -16,6 +16,7 @@ async function request(path: string, options: RequestInit = {}) {
 
 export async function registerDriver(data: {
   name: string; email: string; phone: string; password: string;
+  vehicleMake?: string; vehicleColor?: string; vehicleReg?: string;
 }) {
   return request("/api/drivers/register", {
     method: "POST",
@@ -80,7 +81,7 @@ export async function updateLocation(latitude: number, longitude: number) {
   });
 }
 
-export async function updateProfile(data: { name?: string; phone?: string }) {
+export async function updateProfile(data: { name?: string; phone?: string; vehicleMake?: string; vehicleColor?: string; vehicleReg?: string }) {
   return request("/api/drivers/profile", {
     method: "PATCH",
     body: JSON.stringify(data),

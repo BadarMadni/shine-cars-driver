@@ -15,6 +15,9 @@ export default function SignupScreen() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [vehicleMake, setVehicleMake] = useState("");
+  const [vehicleColor, setVehicleColor] = useState("");
+  const [vehicleReg, setVehicleReg] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -32,6 +35,9 @@ export default function SignupScreen() {
         email: email.trim().toLowerCase(),
         phone: phone.trim(),
         password,
+        vehicleMake: vehicleMake.trim(),
+        vehicleColor: vehicleColor.trim(),
+        vehicleReg: vehicleReg.trim().toUpperCase(),
       });
       if (res.success) {
         await clearAuth();
@@ -51,6 +57,9 @@ export default function SignupScreen() {
     { icon: "person-outline" as const, placeholder: "Full Name", value: name, set: setName },
     { icon: "mail-outline" as const, placeholder: "Email", value: email, set: setEmail, kb: "email-address" as const },
     { icon: "call-outline" as const, placeholder: "Phone Number", value: phone, set: setPhone, kb: "phone-pad" as const },
+    { icon: "car-outline" as const, placeholder: "Vehicle (e.g. BMW, Toyota)", value: vehicleMake, set: setVehicleMake },
+    { icon: "color-palette-outline" as const, placeholder: "Vehicle Color (e.g. Black)", value: vehicleColor, set: setVehicleColor },
+    { icon: "pricetag-outline" as const, placeholder: "Registration (e.g. AB12 CDE)", value: vehicleReg, set: setVehicleReg, auto: "characters" as const },
   ];
 
   return (
@@ -66,7 +75,7 @@ export default function SignupScreen() {
             <TextInput style={styles.input} placeholder={f.placeholder}
               placeholderTextColor={COLORS.gray400} value={f.value}
               onChangeText={f.set} keyboardType={f.kb || "default"}
-              autoCapitalize={f.kb === "email-address" ? "none" : "words"} />
+              autoCapitalize={f.kb === "email-address" ? "none" : (f as { auto?: string }).auto === "characters" ? "characters" : "words"} />
           </View>
         ))}
 

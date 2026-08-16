@@ -10,7 +10,7 @@ import { getDriver, clearAuth, saveDriver } from "@/src/lib/auth";
 import { getProfile, updateProfile, deleteAccount } from "@/src/lib/api";
 import ConfirmModal from "@/src/components/ConfirmModal";
 
-interface Driver { name: string; email: string; phone: string; status: string; vehicleMake?: string; vehicleColor?: string; vehicleReg?: string }
+interface Driver { name: string; email: string; phone: string; status: string; vehicleMake?: string; vehicleColor?: string; vehicleReg?: string; passengerLicense?: number }
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -21,6 +21,7 @@ export default function ProfileScreen() {
   const [vMake, setVMake] = useState("");
   const [vColor, setVColor] = useState("");
   const [vReg, setVReg] = useState("");
+  const [pLicense, setPLicense] = useState(0);
   const [saving, setSaving] = useState(false);
   const [showLogout, setShowLogout] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -28,10 +29,10 @@ export default function ProfileScreen() {
   useEffect(() => {
     (async () => {
       const cached = await getDriver() as Driver | null;
-      if (cached) { setDriver(cached); setName(cached.name); setPhone(cached.phone); setVMake(cached.vehicleMake || ""); setVColor(cached.vehicleColor || ""); setVReg(cached.vehicleReg || ""); }
+      if (cached) { setDriver(cached); setName(cached.name); setPhone(cached.phone); setVMake(cached.vehicleMake || ""); setVColor(cached.vehicleColor || ""); setVReg(cached.vehicleReg || ""); setPLicense(cached.passengerLicense || 0); }
       try {
         const res = await getProfile();
-        if (res.success) { setDriver(res.driver); setName(res.driver.name); setPhone(res.driver.phone); setVMake(res.driver.vehicleMake || ""); setVColor(res.driver.vehicleColor || ""); setVReg(res.driver.vehicleReg || ""); await saveDriver(res.driver); }
+        if (res.success) { setDriver(res.driver); setName(res.driver.name); setPhone(res.driver.phone); setVMake(res.driver.vehicleMake || ""); setVColor(res.driver.vehicleColor || ""); setVReg(res.driver.vehicleReg || ""); setPLicense(res.driver.passengerLicense || 0); await saveDriver(res.driver); }
       } catch {}
     })();
   }, []);
@@ -41,7 +42,7 @@ export default function ProfileScreen() {
     if (!phone.trim()) return Alert.alert("Error", "Phone is required");
     setSaving(true);
     try {
-      const res = await updateProfile({ name: name.trim(), phone: phone.trim(), vehicleMake: vMake.trim(), vehicleColor: vColor.trim(), vehicleReg: vReg.trim().toUpperCase() });
+      const res = await updateProfile({ name: name.trim(), phone: phone.trim(), vehicleMake: vMake.trim(), vehicleColor: vColor.trim(), vehicleReg: vReg.trim().toUpperCase(), passengerLicense: pLicense || null });
       if (res.success) { setDriver(res.driver); await saveDriver(res.driver); setEditing(false); Alert.alert("Success", "Profile updated"); }
     } catch { Alert.alert("Error", "Failed to update profile"); }
     setSaving(false);
@@ -65,6 +66,7 @@ export default function ProfileScreen() {
     { icon: "car-outline", label: "Vehicle", value: driver?.vehicleMake || "—", editable: true },
     { icon: "color-palette-outline", label: "Color", value: driver?.vehicleColor || "—", editable: true },
     { icon: "pricetag-outline", label: "Reg No.", value: driver?.vehicleReg || "—", editable: true },
+    { icon: "people-outline", label: "Licence to Carry", value: driver?.passengerLicense ? String(driver.passengerLicense) : "—", editable: false },
   ];
 
   return (
@@ -111,9 +113,20 @@ export default function ProfileScreen() {
       </View>
 
       {editing && (
+        <>
+        <Text style={s.licLabel}>Licence to Carry Passengers</Text>
+        <View style={s.licRow}>
+          {[1,2,3,4,5,6,7,8].map((n) => (
+            <TouchableOpacity key={n} onPress={() => setPLicense(n)}
+              style={[s.licChip, pLicense === n && s.licChipActive]}>
+              <Text style={[s.licChipText, pLicense === n && s.licChipTextActive]}>{n}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
         <TouchableOpacity onPress={handleSave} disabled={saving} style={s.saveBtn} activeOpacity={0.8}>
           {saving ? <ActivityIndicator color={COLORS.white} /> : <Text style={s.saveText}>Save Changes</Text>}
         </TouchableOpacity>
+        </>
       )}
 
       {[{ icon: "document-text-outline" as const, label: "Manage Documents", route: "/documents" },
@@ -169,6 +182,15 @@ const s = StyleSheet.create({
   rowLabel: { color: COLORS.gray400, fontSize: 12 },
   rowValue: { color: COLORS.white, fontSize: 15, fontWeight: "600", marginTop: 2 },
   input: { color: COLORS.white, fontSize: 15, fontWeight: "600", marginTop: 2, borderBottomWidth: 1, borderBottomColor: COLORS.crimson, paddingBottom: 4 },
+  licLabel: { color: COLORS.gray400, fontSize: 13, fontWeight: "600", marginBottom: 8, marginTop: 4 },
+  licRow: { flexDirection: "row" as const, flexWrap: "wrap" as const, gap: 8, marginBottom: 12 },
+  licChip: {
+    width: 40, height: 40, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center" as const, justifyContent: "center" as const,
+  },
+  licChipActive: { backgroundColor: COLORS.crimson, borderColor: COLORS.crimson },
+  licChipText: { color: COLORS.gray400, fontSize: 16, fontWeight: "700" as const },
+  licChipTextActive: { color: COLORS.white },
   saveBtn: { backgroundColor: COLORS.crimson, borderRadius: 12, paddingVertical: 16, alignItems: "center", marginBottom: 16 },
   saveText: { color: COLORS.white, fontSize: 16, fontWeight: "700" },
   docBtn: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 12, padding: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", marginBottom: 12 },

@@ -18,6 +18,7 @@ export default function SignupScreen() {
   const [vehicleMake, setVehicleMake] = useState("");
   const [vehicleColor, setVehicleColor] = useState("");
   const [vehicleReg, setVehicleReg] = useState("");
+  const [passengerLicense, setPassengerLicense] = useState(0);
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,6 +39,7 @@ export default function SignupScreen() {
         vehicleMake: vehicleMake.trim(),
         vehicleColor: vehicleColor.trim(),
         vehicleReg: vehicleReg.trim().toUpperCase(),
+        passengerLicense: passengerLicense || undefined,
       });
       if (res.success) {
         await clearAuth();
@@ -79,6 +81,16 @@ export default function SignupScreen() {
           </View>
         ))}
 
+        <Text style={styles.licLabel}>Licence to Carry Passengers</Text>
+        <View style={styles.licRow}>
+          {[1,2,3,4,5,6,7,8].map((n) => (
+            <TouchableOpacity key={n} onPress={() => setPassengerLicense(n)}
+              style={[styles.licChip, passengerLicense === n && styles.licChipActive]}>
+              <Text style={[styles.licChipText, passengerLicense === n && styles.licChipTextActive]}>{n}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         <View style={styles.inputWrap}>
           <Ionicons name="lock-closed-outline" size={20} color={COLORS.gray400} />
           <TextInput style={styles.input} placeholder="Password"
@@ -115,6 +127,15 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: "rgba(255,255,255,0.1)",
   },
   input: { flex: 1, color: COLORS.white, fontSize: 15, marginLeft: 12 },
+  licLabel: { color: COLORS.gray400, fontSize: 13, fontWeight: "600", marginBottom: 8, marginTop: 4 },
+  licRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 12 },
+  licChip: {
+    width: 40, height: 40, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center",
+  },
+  licChipActive: { backgroundColor: COLORS.crimson, borderColor: COLORS.crimson },
+  licChipText: { color: COLORS.gray400, fontSize: 16, fontWeight: "700" },
+  licChipTextActive: { color: COLORS.white },
   error: { color: COLORS.red, fontSize: 13, marginBottom: 12, textAlign: "center" },
   btn: {
     backgroundColor: COLORS.crimson, borderRadius: 12, paddingVertical: 16,

@@ -14,6 +14,7 @@ import { useKeepAwake, deactivateKeepAwake, activateKeepAwake } from "expo-keep-
 import { useUnreadCount } from "@/src/hooks/useNotifications";
 import { useChatUnread } from "@/src/hooks/useChatUnread";
 import styles from "@/src/styles/dashboard";
+import ReportsButton from "@/src/components/ReportsButton";
 
 interface Driver {
   name: string; status: string; isAvailable?: boolean;
@@ -181,6 +182,9 @@ export default function DashboardScreen() {
           </View>
         ))}
       </View>
+
+      {/* Reports */}
+      <ReportsButton onPress={() => router.push("/reports")} />
     </ScrollView>
   );
 }

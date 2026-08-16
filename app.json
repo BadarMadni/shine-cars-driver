@@ -20,7 +20,9 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Shine Cars Driver needs your location so dispatchers can find and assign you nearby bookings.",
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "androidNavigationBar": {
@@ -62,7 +64,8 @@
           "photosPermission": "Allow Shine Cars Driver to access your photos to upload documents.",
           "cameraPermission": "Allow Shine Cars Driver to use your camera to capture documents."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "router": {},

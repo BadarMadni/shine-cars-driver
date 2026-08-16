@@ -13,6 +13,7 @@ const POLL_INTERVAL = 10_000;
 interface Booking {
   id: string; name: string; phone: string;
   pickup: string; dropoff: string; stops?: string | null;
+  pickupDetails?: string | null; dropoffDetails?: string | null;
   date: string; time: string;
   fare: number; status: string; vehicle: string;
   isRecurring?: boolean;
@@ -138,6 +139,7 @@ export default function BookingsScreen() {
                   <View style={[styles.dot, { backgroundColor: COLORS.green }]} />
                   <Text style={styles.locationText} numberOfLines={1}>{b.pickup}</Text>
                 </View>
+                {b.pickupDetails ? <Text style={{ color: COLORS.gold, fontSize: 10, fontStyle: "italic", marginLeft: 18, marginTop: -4 }}>{b.pickupDetails}</Text> : null}
                 {b.stops && (() => { try { const s: string[] = JSON.parse(b.stops); return s.map((addr, i) => (
                   <View key={i} style={styles.locationRow}>
                     <View style={[styles.dot, { backgroundColor: "#F59E0B" }]} />
@@ -148,6 +150,7 @@ export default function BookingsScreen() {
                   <View style={[styles.dot, { backgroundColor: COLORS.crimson }]} />
                   <Text style={styles.locationText} numberOfLines={1}>{b.dropoff}</Text>
                 </View>
+                {b.dropoffDetails ? <Text style={{ color: COLORS.gold, fontSize: 10, fontStyle: "italic", marginLeft: 18, marginTop: -4 }}>{b.dropoffDetails}</Text> : null}
               </View>
               <View style={styles.cardFooter}>
                 <Text style={styles.fare}>£{b.fare.toFixed(2)}</Text>
@@ -166,13 +169,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.navy, paddingTop: Platform.OS === "ios" ? 60 : 40, paddingHorizontal: 20 },
   title: { color: COLORS.white, fontSize: 24, fontWeight: "800", marginBottom: 16 },
   tabs: { flexDirection: "row", gap: 8, marginBottom: 16 },
-  tab: {
-    flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
-  },
+  tab: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: "center", backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
   tabActive: { backgroundColor: "rgba(204,34,41,0.15)", borderColor: COLORS.crimson },
-  tabText: { color: COLORS.gray400, fontSize: 13, fontWeight: "600" },
-  tabTextActive: { color: COLORS.crimson },
+  tabText: { color: COLORS.gray400, fontSize: 13, fontWeight: "600" }, tabTextActive: { color: COLORS.crimson },
   list: { flex: 1 },
   empty: { alignItems: "center", paddingTop: 60 },
   emptyText: { color: COLORS.gray400, fontSize: 16, fontWeight: "600", marginTop: 12 },

@@ -12,6 +12,7 @@ function openNavigation(address: string) {
 interface Booking {
   id: string; name: string; phone: string;
   pickup: string; dropoff: string; stops?: string | null;
+  pickupDetails?: string | null; dropoffDetails?: string | null;
   date: string; time: string;
   distance: number; fare: number;
   status: string; vehicle: string;
@@ -103,11 +104,13 @@ export function TripCard({ booking, currentStopIndex, onNextStop }: {
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Trip Details</Text>
       <TripPoint color={COLORS.green} label="Pickup" address={booking.pickup} />
+      {booking.pickupDetails ? <View style={{ marginLeft: 24, marginTop: -4, marginBottom: 4 }}><Text style={{ color: COLORS.gold, fontSize: 11, fontStyle: "italic" }}>{booking.pickupDetails}</Text></View> : null}
       {parsedStops.map((stop, i) => (
         <View key={i}><View style={styles.tripLine} /><TripPoint color={i === stopIdx && booking.status !== "accepted" ? "#F59E0B" : "#D4A017"} label={`Stop ${i + 1}`} address={stop} /></View>
       ))}
       <View style={styles.tripLine} />
       <TripPoint color={COLORS.crimson} label="Drop-off" address={booking.dropoff} />
+      {booking.dropoffDetails ? <View style={{ marginLeft: 24, marginTop: -4, marginBottom: 4 }}><Text style={{ color: COLORS.gold, fontSize: 11, fontStyle: "italic" }}>{booking.dropoffDetails}</Text></View> : null}
       {showNav && (
         <TouchableOpacity activeOpacity={0.8} onPress={() => openNavigation(navTo)} style={styles.navBtn}>
           <Ionicons name="navigate" size={18} color={COLORS.white} /><Text style={styles.navBtnText}>{navLabel}</Text>

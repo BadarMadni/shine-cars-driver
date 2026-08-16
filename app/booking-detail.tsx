@@ -19,6 +19,7 @@ import MeterCard from "@/src/components/MeterCard";
 interface Booking {
   id: string; name: string; phone: string;
   pickup: string; dropoff: string; stops?: string | null;
+  pickupDetails?: string | null; dropoffDetails?: string | null;
   date: string; time: string;
   distance: number; fare: number;
   status: string; vehicle: string;

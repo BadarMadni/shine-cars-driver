@@ -11,7 +11,7 @@ const TIMER_SECONDS = 15;
 
 interface Booking {
   id: string; name: string; pickup: string; dropoff: string;
-  pickupDetails?: string | null; dropoffDetails?: string | null;
+  pickupDetails?: string | null; dropoffDetails?: string | null; buildingInfo?: string | null;
   vehicle?: string; fare?: number; date?: string; time?: string;
   fareType?: string; isRecurring?: boolean; days?: string;
 }
@@ -113,6 +113,7 @@ export default function BookingAlertModal({ booking, onAccept, onReject }: Props
             <Text style={s.value} numberOfLines={2}>{booking.pickup}</Text>
           </View>
           {booking.pickupDetails ? <Text style={{ color: COLORS.gold, fontSize: 11, fontStyle: "italic", marginLeft: 89, marginTop: -6, marginBottom: 6 }}>{booking.pickupDetails}</Text> : null}
+          {booking.buildingInfo ? <Text style={{ color: "#F59E0B", fontSize: 11, fontStyle: "italic", marginLeft: 89, marginTop: -6, marginBottom: 6 }}>🏠 {booking.buildingInfo}</Text> : null}
           <View style={s.row}>
             <Ionicons name="flag" size={16} color={COLORS.crimson} />
             <Text style={s.label}>Drop-off</Text>

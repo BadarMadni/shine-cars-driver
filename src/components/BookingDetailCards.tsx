@@ -12,7 +12,7 @@ function openNavigation(address: string) {
 interface Booking {
   id: string; name: string; phone: string;
   pickup: string; dropoff: string; stops?: string | null;
-  pickupDetails?: string | null; dropoffDetails?: string | null;
+  pickupDetails?: string | null; dropoffDetails?: string | null; buildingInfo?: string | null;
   date: string; time: string;
   distance: number; fare: number;
   status: string; vehicle: string;
@@ -105,6 +105,7 @@ export function TripCard({ booking, currentStopIndex, onNextStop }: {
       <Text style={styles.cardTitle}>Trip Details</Text>
       <TripPoint color={COLORS.green} label="Pickup" address={booking.pickup} />
       {booking.pickupDetails ? <View style={{ marginLeft: 24, marginTop: -4, marginBottom: 4 }}><Text style={{ color: COLORS.gold, fontSize: 11, fontStyle: "italic" }}>{booking.pickupDetails}</Text></View> : null}
+      {booking.buildingInfo ? <View style={{ marginLeft: 24, marginTop: -4, marginBottom: 4 }}><Text style={{ color: "#F59E0B", fontSize: 11, fontStyle: "italic" }}>🏠 {booking.buildingInfo}</Text></View> : null}
       {parsedStops.map((stop, i) => (
         <View key={i}><View style={styles.tripLine} /><TripPoint color={i === stopIdx && booking.status !== "accepted" ? "#F59E0B" : "#D4A017"} label={`Stop ${i + 1}`} address={stop} /></View>
       ))}

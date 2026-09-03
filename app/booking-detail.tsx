@@ -97,7 +97,10 @@ export default function BookingDetailScreen() {
     );
   }, [booking]);
 
-  const stopMeter = useCallback(() => { locationSub.current?.remove(); locationSub.current = null; setMeterRunning(false); }, []);
+  const stopMeter = useCallback(() => {
+    locationSub.current?.remove(); locationSub.current = null; setMeterRunning(false);
+    if (meterFare > 0) setCashAmount(meterFare.toFixed(2));
+  }, [meterFare]);
 
   const doUpdate = async (nextStatus: string, cash?: number, mDist?: number, mFare?: number) => {
     if (!booking) return;
@@ -152,13 +155,13 @@ export default function BookingDetailScreen() {
         </TouchableOpacity>
 
         <View style={styles.statusCard}>
-          <Text style={styles.statusLabel}>Status</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Text style={styles.statusLabel}>Status:</Text>
             <Text style={styles.statusValue}>{booking.status.toUpperCase()}</Text>
-            {booking.isRecurring && (<View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(168,85,247,0.15)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 }}>
-              <Ionicons name="repeat" size={12} color="#A855F7" /><Text style={{ color: "#A855F7", fontSize: 10, fontWeight: "800" }}>RECURRING</Text>
-            </View>)}
           </View>
+          {booking.isRecurring && (<View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(168,85,247,0.15)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 }}>
+            <Ionicons name="repeat" size={11} color="#A855F7" /><Text style={{ color: "#A855F7", fontSize: 10, fontWeight: "800" }}>RECURRING</Text>
+          </View>)}
         </View>
 
         <PaymentCard booking={booking} />

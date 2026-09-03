@@ -58,7 +58,7 @@ export function PaymentCard({ booking }: { booking: Booking }) {
         <View style={styles.cashBadge}>
           <Ionicons name="alert-circle" size={16} color={COLORS.gold} />
           <Text style={styles.cashText}>{booking.fareType === "meter" && !booking.meterFare
-            ? `Estimated: £${(booking.fare * 0.9).toFixed(2)} – £${(booking.fare * 1.1).toFixed(2)}`
+            ? `Estimated: £${booking.fare.toFixed(2)} – £${(booking.fare * 1.1).toFixed(2)}`
             : `Collect £${(booking.meterFare ?? booking.fare).toFixed(2)} cash from customer`}</Text>
         </View>
       )}
@@ -133,7 +133,7 @@ export function RideInfoCard({ booking }: { booking: Booking }) {
     { icon: "time-outline", value: booking.time, label: "Time" },
     { icon: "speedometer-outline", value: `${booking.distance?.toFixed(1) || "—"} mi`, label: "Distance" },
     { icon: "cash-outline", value: booking.fareType === "meter" && !booking.meterFare
-      ? `£${(booking.fare * 0.9).toFixed(2)} – £${(booking.fare * 1.1).toFixed(2)}`
+      ? `£${booking.fare.toFixed(2)} – £${(booking.fare * 1.1).toFixed(2)}`
       : `£${(booking.meterFare ?? booking.fare).toFixed(2)}`, label: booking.fareType === "meter" && !booking.meterFare ? "Est. Fare" : "Fare" },
   ];
   return (
@@ -142,7 +142,7 @@ export function RideInfoCard({ booking }: { booking: Booking }) {
       <View style={styles.rideGrid}>
         {items.map((it) => (
           <View key={it.label} style={styles.rideItem}>
-            <Ionicons name={it.icon} size={18} color={COLORS.gold} />
+            <Ionicons name={it.icon} size={15} color={COLORS.gold} />
             <Text style={styles.rideValue}>{it.value}</Text>
             <Text style={styles.rideLabel}>{it.label}</Text>
           </View>
@@ -165,7 +165,7 @@ export function CashInputCard({ booking, cashAmount, setCashAmount, onFocus }: {
       <View style={styles.cashInputRow}>
         <Text style={styles.currencySign}>£</Text>
         <TextInput style={styles.cashInput} value={cashAmount} onChangeText={setCashAmount}
-          placeholder={booking.fare.toFixed(2)} placeholderTextColor={COLORS.gray500} keyboardType="decimal-pad"
+          placeholder="0.00" placeholderTextColor={COLORS.gray500} keyboardType="decimal-pad"
           onFocus={onFocus} />
       </View>
       <Text style={styles.cashHint}>Enter amount received from customer</Text>

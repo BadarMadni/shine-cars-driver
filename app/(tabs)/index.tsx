@@ -10,7 +10,7 @@ import { getDriver, saveDriver, clearAuth } from "@/src/lib/auth";
 import { getProfile, toggleAvailability, getBookings, savePushToken } from "@/src/lib/api";
 import { useLocationTracking } from "@/src/hooks/useLocation";
 import { useRouter } from "expo-router";
-import { useKeepAwake, deactivateKeepAwake, activateKeepAwake } from "expo-keep-awake";
+import { useKeepAwake } from "expo-keep-awake";
 import { useUnreadCount } from "@/src/hooks/useNotifications";
 import { useChatUnread } from "@/src/hooks/useChatUnread";
 import styles from "@/src/styles/dashboard";
@@ -31,11 +31,7 @@ export default function DashboardScreen() {
   const [earnings, setEarnings] = useState(0);
 
   useLocationTracking(available);
-  useEffect(() => {
-    if (available) activateKeepAwake("driver-available");
-    else deactivateKeepAwake("driver-available");
-    return () => deactivateKeepAwake("driver-available");
-  }, [available]);
+  useKeepAwake();
   const { count: unreadCount } = useUnreadCount();
   const chatUnread = useChatUnread();
 

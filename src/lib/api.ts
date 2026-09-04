@@ -147,14 +147,15 @@ export async function uploadDocument(
   const match = /\.(\w+)$/.exec(filename);
   const mimeType = match ? `image/${match[1]}` : "image/jpeg";
 
+  const response = await fetch(uri);
+  const blob = await response.blob();
+
   const formData = new FormData();
   formData.append("type", type);
   formData.append("expiryDate", expiryDate);
-  formData.append("file", {
-    uri, name: filename, type: mimeType,
-  } as unknown as Blob);
-
+  formData.append("file", blob, filename);
   formData.append("token", token);
+
   const res = await fetch(`${API_URL}/api/drivers/documents`, {
     method: "POST",
     body: formData,

@@ -1,9 +1,16 @@
 import { Platform } from "react-native";
 import * as Device from "expo-device";
+import Constants from "expo-constants";
+
+const isExpoGo = Constants.executionEnvironment === "storeClient";
 
 let Notifications: typeof import("expo-notifications") | null = null;
 
 async function getNotifications() {
+  if (isExpoGo && Platform.OS === "android") {
+    console.log("Push notifications not available in Expo Go on Android");
+    return null;
+  }
   if (!Notifications) {
     try {
       Notifications = await import("expo-notifications");

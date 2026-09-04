@@ -17,6 +17,7 @@ interface Booking {
   date: string; time: string;
   fare: number; status: string; vehicle: string;
   isRecurring?: boolean;
+  isPriority?: boolean;
 }
 
 const tabs = [
@@ -122,6 +123,12 @@ export default function BookingsScreen() {
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: "rgba(168,85,247,0.15)", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
                         <Ionicons name="repeat" size={10} color="#A855F7" />
                         <Text style={{ color: "#A855F7", fontSize: 9, fontWeight: "800" }}>RECURRING</Text>
+                      </View>
+                    )}
+                    {b.isPriority && (
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: "rgba(249,115,22,0.15)", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+                        <Ionicons name="flash" size={10} color="#F97316" />
+                        <Text style={{ color: "#F97316", fontSize: 9, fontWeight: "800" }}>PRIORITY</Text>
                       </View>
                     )}
                   </View>

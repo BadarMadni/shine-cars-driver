@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Modal, View, Text, TouchableOpacity, StyleSheet, Vibration,
 } from "react-native";
-import { Audio } from "expo-av";
+import { useAudioPlayer, AudioModule } from "expo-audio";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/constants/theme";
 
@@ -13,7 +13,7 @@ interface Booking {
   id: string; name: string; pickup: string; dropoff: string;
   pickupDetails?: string | null; dropoffDetails?: string | null; buildingInfo?: string | null;
   vehicle?: string; fare?: number; date?: string; time?: string;
-  fareType?: string; isRecurring?: boolean; days?: string;
+  fareType?: string; isRecurring?: boolean; isPriority?: boolean; days?: string;
 }
 
 interface Props {
@@ -24,35 +24,22 @@ interface Props {
 
 export default function BookingAlertModal({ booking, onAccept, onReject }: Props) {
   const [seconds, setSeconds] = useState(TIMER_SECONDS);
-  const soundRef = useRef<Audio.Sound | null>(null);
+  const player = useAudioPlayer(alertSound);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const loopRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const stopSound = async () => {
+  const stopSound = () => {
     if (loopRef.current) { clearInterval(loopRef.current); loopRef.current = null; }
-    if (soundRef.current) {
-      try { await soundRef.current.stopAsync(); await soundRef.current.unloadAsync(); } catch {}
-      soundRef.current = null;
-    }
+    try { player.pause(); player.seekTo(0); } catch {}
     Vibration.cancel();
   };
 
   const playLoop = async () => {
-    await Audio.setAudioModeAsync({ playsInSilentModeIOS: true, staysActiveInBackground: true });
-    const playOnce = async () => {
-      try {
-        if (soundRef.current) {
-          await soundRef.current.stopAsync();
-          await soundRef.current.setPositionAsync(0);
-          await soundRef.current.playAsync();
-        } else {
-          const { sound } = await Audio.Sound.createAsync(alertSound, { volume: 1.0 });
-          soundRef.current = sound;
-          await sound.playAsync();
-        }
-      } catch {}
+    try { await AudioModule.setAudioModeAsync({ playsInSilentModeIOS: true }); } catch {}
+    const playOnce = () => {
+      try { player.seekTo(0); player.play(); } catch {}
     };
-    await playOnce();
+    playOnce();
     loopRef.current = setInterval(playOnce, 1800);
     Vibration.vibrate([0, 500, 300, 500, 300, 500], true);
   };
@@ -99,7 +86,13 @@ export default function BookingAlertModal({ booking, onAccept, onReject }: Props
               <Text style={s.recurText}>RECURRING</Text>
             </View>
           )}
-          <Text style={s.title}>{booking.isRecurring ? "RECURRING BOOKING" : "NEW BOOKING"}</Text>
+          {booking.isPriority && (
+            <View style={[s.recurBadge, { backgroundColor: "rgba(249,115,22,0.15)", borderColor: "rgba(249,115,22,0.3)" }]}>
+              <Ionicons name="flash" size={12} color="#F97316" />
+              <Text style={[s.recurText, { color: "#F97316" }]}>PRIORITY</Text>
+            </View>
+          )}
+          <Text style={s.title}>{booking.isRecurring ? "RECURRING BOOKING" : booking.isPriority ? "PRIORITY BOOKING" : "NEW BOOKING"}</Text>
 
           {/* Details */}
           <View style={s.row}>

@@ -15,6 +15,7 @@ import {
   NotesCard, CashInputCard, ActionButtons, CompleteButton,
 } from "@/src/components/BookingDetailCards";
 import MeterCard from "@/src/components/MeterCard";
+import WaitingTimeCard from "@/src/components/WaitingTimeCard";
 
 interface Booking {
   id: string; name: string; phone: string;
@@ -58,6 +59,7 @@ export default function BookingDetailScreen() {
   const locationSub = useRef<Location.LocationSubscription | null>(null);
   const lastPos = useRef<{ lat: number; lng: number } | null>(null);
   const scrollRef = useRef<ScrollView>(null);
+  const [waitingCharge, setWaitingCharge] = useState(0);
 
   const load = async () => {
     try {
@@ -102,11 +104,11 @@ export default function BookingDetailScreen() {
     if (meterFare > 0) setCashAmount(meterFare.toFixed(2));
   }, [meterFare]);
 
-  const doUpdate = async (nextStatus: string, cash?: number, mDist?: number, mFare?: number) => {
+  const doUpdate = async (nextStatus: string, cash?: number, mDist?: number, mFare?: number, wCharge?: number) => {
     if (!booking) return;
     setUpdating(true);
     try {
-      const res = await updateBookingStatus(booking.id, nextStatus, cash, mDist, mFare);
+      const res = await updateBookingStatus(booking.id, nextStatus, cash, mDist, mFare, wCharge);
       if (res.success) setBooking({ ...booking, status: nextStatus });
     } catch {}
     setUpdating(false);
@@ -128,7 +130,7 @@ export default function BookingDetailScreen() {
     if (isCash && !cashAmount.trim()) { Alert.alert("Cash Amount", "Please enter the cash amount collected."); return; }
     const amount = isCash ? parseFloat(cashAmount) : undefined;
     if (isCash && (isNaN(amount!) || amount! <= 0)) { Alert.alert("Invalid Amount", "Please enter a valid amount."); return; }
-    doUpdate("completed", amount, isMeter ? meterDistance : undefined, isMeter ? meterFare : undefined);
+    doUpdate("completed", amount, isMeter ? meterDistance : undefined, isMeter ? meterFare : undefined, waitingCharge > 0 ? waitingCharge : undefined);
   };
 
   if (loading) return <View style={styles.center}><ActivityIndicator color={COLORS.gold} size="large" /></View>;
@@ -169,6 +171,9 @@ export default function BookingDetailScreen() {
         <TripCard booking={booking} currentStopIndex={currentStopIndex}
           onNextStop={() => setCurrentStopIndex((i) => i + 1)} />
         <RideInfoCard booking={booking} />
+        {booking.fareType === "meter" && booking.status === "arrived" && (
+          <WaitingTimeCard onChargeChange={setWaitingCharge} />
+        )}
         {booking.fareType === "meter" && isInProgress && !isInvoice && (
           <MeterCard meterRunning={meterRunning} meterDistance={meterDistance}
             meterFare={meterFare} onStart={startMeter} onStop={stopMeter} />

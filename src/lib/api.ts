@@ -74,11 +74,11 @@ export async function rejectRecurringTemplate(recurringId: string) {
 
 export async function updateBookingStatus(
   bookingId: string, status: string, cashCollected?: number,
-  meterDistance?: number, meterFare?: number,
+  meterDistance?: number, meterFare?: number, waitingCharge?: number,
 ) {
   return request("/api/drivers/bookings/status", {
     method: "PATCH",
-    body: JSON.stringify({ bookingId, status, cashCollected, meterDistance, meterFare }),
+    body: JSON.stringify({ bookingId, status, cashCollected, meterDistance, meterFare, waitingCharge }),
   });
 }
 

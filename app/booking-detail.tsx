@@ -111,7 +111,7 @@ export default function BookingDetailScreen() {
     setUpdating(true);
     try {
       const res = await updateBookingStatus(booking.id, nextStatus, cash, mDist, mFare, wCharge, ecNote);
-      if (res.success) setBooking({ ...booking, status: nextStatus });
+      if (res.success) setBooking(res.booking ? { ...booking, ...res.booking } : { ...booking, status: nextStatus });
     } catch {}
     setUpdating(false);
   };

@@ -158,7 +158,11 @@ export function NotesCard({ booking }: { booking: Booking }) {
   return (<View style={styles.card}><Text style={styles.cardTitle}>Notes from Dispatcher</Text><View style={styles.infoRow}><Ionicons name="document-text-outline" size={16} color={COLORS.gold} /><Text style={[styles.infoText, { flex: 1 }]}>{t}</Text></View></View>);
 }
 
-export function CashInputCard({ booking, cashAmount, setCashAmount, waitingCharge = 0, onFocus }: { booking: Booking; cashAmount: string; setCashAmount: (v: string) => void; waitingCharge?: number; onFocus?: () => void }) {
+export function CashInputCard({ booking, cashAmount, setCashAmount, waitingCharge = 0, extraChargeNote, setExtraChargeNote, onFocus }: {
+  booking: Booking; cashAmount: string; setCashAmount: (v: string) => void;
+  waitingCharge?: number; extraChargeNote?: string; setExtraChargeNote?: (v: string) => void;
+  onFocus?: () => void;
+}) {
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Cash Collected</Text>
@@ -176,6 +180,25 @@ export function CashInputCard({ booking, cashAmount, setCashAmount, waitingCharg
           onFocus={onFocus} />
       </View>
       <Text style={styles.cashHint}>Enter amount received from customer</Text>
+      {booking.fareType === "meter" && setExtraChargeNote && (
+        <View style={{ marginTop: 12 }}>
+          <Text style={{ color: COLORS.gray400, fontSize: 11, fontWeight: "600", marginBottom: 6 }}>Extra charge reason (optional)</Text>
+          <TextInput
+            style={{
+              backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 10,
+              padding: 12, color: COLORS.white, fontSize: 13,
+              borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
+              minHeight: 44,
+            }}
+            value={extraChargeNote}
+            onChangeText={setExtraChargeNote}
+            placeholder="e.g. Extra luggage, longer route..."
+            placeholderTextColor={COLORS.gray500}
+            multiline
+            onFocus={onFocus}
+          />
+        </View>
+      )}
     </View>
   );
 }

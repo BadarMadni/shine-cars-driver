@@ -52,6 +52,7 @@ export default function BookingDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [cashAmount, setCashAmount] = useState("");
+  const [extraChargeNote, setExtraChargeNote] = useState("");
   const [currentStopIndex, setCurrentStopIndex] = useState(0);
   const [meterRunning, setMeterRunning] = useState(false);
   const [meterDistance, setMeterDistance] = useState(0);
@@ -105,11 +106,11 @@ export default function BookingDetailScreen() {
     if (total > 0) setCashAmount(total.toFixed(2));
   }, [meterFare, waitingCharge]);
 
-  const doUpdate = async (nextStatus: string, cash?: number, mDist?: number, mFare?: number, wCharge?: number) => {
+  const doUpdate = async (nextStatus: string, cash?: number, mDist?: number, mFare?: number, wCharge?: number, ecNote?: string) => {
     if (!booking) return;
     setUpdating(true);
     try {
-      const res = await updateBookingStatus(booking.id, nextStatus, cash, mDist, mFare, wCharge);
+      const res = await updateBookingStatus(booking.id, nextStatus, cash, mDist, mFare, wCharge, ecNote);
       if (res.success) setBooking({ ...booking, status: nextStatus });
     } catch {}
     setUpdating(false);
@@ -135,7 +136,7 @@ export default function BookingDetailScreen() {
     if (isCash && !cashAmount.trim()) { Alert.alert("Cash Amount", "Please enter the cash amount collected."); return; }
     const amount = isCash ? parseFloat(cashAmount) : undefined;
     if (isCash && (isNaN(amount!) || amount! <= 0)) { Alert.alert("Invalid Amount", "Please enter a valid amount."); return; }
-    doUpdate("completed", amount, isMeter ? meterDistance : undefined, isMeter ? meterFare : undefined, waitingCharge > 0 ? waitingCharge : undefined);
+    doUpdate("completed", amount, isMeter ? meterDistance : undefined, isMeter ? meterFare : undefined, waitingCharge > 0 ? waitingCharge : undefined, extraChargeNote.trim() || undefined);
   };
 
   if (loading) return <View style={styles.center}><ActivityIndicator color={COLORS.gold} size="large" /></View>;
@@ -195,6 +196,7 @@ export default function BookingDetailScreen() {
         {isInProgress && isCash && !isInvoice && (
           <CashInputCard booking={booking} cashAmount={cashAmount} setCashAmount={setCashAmount}
             waitingCharge={waitingCharge}
+            extraChargeNote={extraChargeNote} setExtraChargeNote={setExtraChargeNote}
             onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300)} />
         )}
 

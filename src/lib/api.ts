@@ -32,6 +32,13 @@ export async function loginDriver(email: string, password: string) {
   });
 }
 
+export async function resetDriverPassword(email: string, phone: string, newPassword: string) {
+  return request("/api/drivers/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ email, phone, newPassword }),
+  });
+}
+
 export async function getProfile() {
   return request("/api/drivers/me");
 }

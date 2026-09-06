@@ -117,6 +117,10 @@ export default function BookingDetailScreen() {
   const handleAction = async (nextStatus: string) => {
     if (!booking) return;
     if (nextStatus === "cancelled") { Alert.alert("Cancel Booking", "Are you sure?", [{ text: "No" }, { text: "Yes", style: "destructive", onPress: () => doUpdate(nextStatus) }]); return; }
+    if (nextStatus === "in-progress" && waitingCharge > 0) {
+      doUpdate(nextStatus, undefined, undefined, undefined, waitingCharge);
+      return;
+    }
     doUpdate(nextStatus);
   };
 

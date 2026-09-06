@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { View, Text, TouchableOpacity, Animated, Easing } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/constants/theme";
+import styles from "@/src/styles/bookingDetail";
 
 const FREE_MINUTES = 5;
 const CHARGE_PER_MIN = 0.5;
@@ -15,7 +16,6 @@ export default function WaitingTimeCard({ onChargeChange }: WaitingTimeCardProps
   const [running, setRunning] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
@@ -24,7 +24,6 @@ export default function WaitingTimeCard({ onChargeChange }: WaitingTimeCardProps
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
-  // Pulse animation for live dot
   useEffect(() => {
     if (!running) return;
     const loop = Animated.loop(
@@ -54,176 +53,95 @@ export default function WaitingTimeCard({ onChargeChange }: WaitingTimeCardProps
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
     const s = secs % 60;
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const accentColor = !running ? COLORS.gray400 : isFreePhase ? "#22C55E" : "#F97316";
+  const statusColor = !running ? COLORS.gray400 : isFreePhase ? "#22C55E" : "#F97316";
 
   return (
-    <View style={{
-      backgroundColor: "rgba(15,22,41,0.95)",
-      borderRadius: 20,
-      marginBottom: 12,
-      borderWidth: 1.5,
-      borderColor: accentColor,
-      overflow: "hidden",
-    }}>
-      {/* Gradient-like top accent bar */}
-      <View style={{ height: 3, backgroundColor: accentColor }} />
-
-      <View style={{ padding: 18 }}>
-        {/* Header */}
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <View style={{
-              width: 32, height: 32, borderRadius: 10,
-              backgroundColor: `${accentColor}20`,
-              alignItems: "center", justifyContent: "center",
-            }}>
-              <Ionicons name="hourglass-outline" size={18} color={accentColor} />
-            </View>
-            <Text style={{ color: COLORS.white, fontSize: 16, fontWeight: "800", letterSpacing: 0.3 }}>
-              Waiting Time
-            </Text>
-          </View>
-          <View style={{
-            flexDirection: "row", alignItems: "center", gap: 6,
-            backgroundColor: `${accentColor}15`,
-            paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20,
-          }}>
-            <Animated.View style={{
-              width: 7, height: 7, borderRadius: 4,
-              backgroundColor: accentColor,
-              opacity: running ? pulseAnim : 1,
-            }} />
-            <Text style={{ fontSize: 10, color: accentColor, fontWeight: "800", letterSpacing: 1 }}>
-              {!running ? "STOPPED" : isFreePhase ? "FREE" : "CHARGING"}
-            </Text>
-          </View>
+    <View style={[styles.card, { borderColor: statusColor, borderWidth: 1 }]}>
+      {/* Header — same pattern as MeterCard */}
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <Text style={[styles.cardTitle, { marginBottom: 0 }]}>Waiting Time</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <Animated.View style={{
+            width: 8, height: 8, borderRadius: 4,
+            backgroundColor: statusColor,
+            opacity: running ? pulseAnim : 1,
+          }} />
+          <Text style={{ fontSize: 10, color: statusColor, fontWeight: "700" }}>
+            {!running ? "STOPPED" : isFreePhase ? "FREE" : "CHARGING"}
+          </Text>
         </View>
-
-        {/* Timer display */}
-        <View style={{
-          flexDirection: "row", justifyContent: "center", alignItems: "center",
-          marginBottom: 16, gap: 24,
-        }}>
-          {/* Time */}
-          <View style={{ alignItems: "center" }}>
-            <Text style={{
-              color: COLORS.white, fontSize: 38, fontWeight: "900",
-              fontVariant: ["tabular-nums"], letterSpacing: 2,
-            }}>
-              {formatTime(elapsed)}
-            </Text>
-            <Text style={{ color: COLORS.gray400, fontSize: 10, fontWeight: "600", letterSpacing: 1, marginTop: 2 }}>
-              ELAPSED
-            </Text>
-          </View>
-
-          {/* Divider */}
-          <View style={{ width: 1, height: 40, backgroundColor: "rgba(255,255,255,0.1)" }} />
-
-          {/* Charge */}
-          <View style={{ alignItems: "center" }}>
-            <Text style={{
-              color: charge > 0 ? "#F97316" : COLORS.white,
-              fontSize: 38, fontWeight: "900", letterSpacing: 1,
-            }}>
-              £{charge.toFixed(2)}
-            </Text>
-            <Text style={{ color: COLORS.gray400, fontSize: 10, fontWeight: "600", letterSpacing: 1, marginTop: 2 }}>
-              CHARGE
-            </Text>
-          </View>
-        </View>
-
-        {/* Progress bar (free phase) */}
-        {isFreePhase && running && (
-          <View style={{ marginBottom: 14 }}>
-            <View style={{
-              height: 6, backgroundColor: "rgba(255,255,255,0.08)",
-              borderRadius: 3, overflow: "hidden",
-            }}>
-              <View style={{
-                height: "100%", backgroundColor: "#22C55E",
-                borderRadius: 3, width: `${freeProgress * 100}%`,
-              }} />
-            </View>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 6 }}>
-              <Text style={{ color: "#22C55E", fontSize: 11, fontWeight: "700" }}>
-                Free waiting
-              </Text>
-              <Text style={{ color: "#22C55E", fontSize: 11, fontWeight: "700" }}>
-                {formatTime(freeRemaining)} left
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* Charging info */}
-        {!isFreePhase && running && (
-          <View style={{
-            backgroundColor: "rgba(249,115,22,0.08)", borderRadius: 12,
-            padding: 12, marginBottom: 14,
-            flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
-          }}>
-            <Ionicons name="flash" size={14} color="#F97316" />
-            <Text style={{ color: "#F97316", fontSize: 13, fontWeight: "700" }}>
-              £0.50/min • {chargeableMinutes} {chargeableMinutes === 1 ? "min" : "mins"} charged
-            </Text>
-          </View>
-        )}
-
-        {/* Stopped summary */}
-        {!running && (
-          <View style={{
-            backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 12,
-            padding: 14, marginBottom: 14, alignItems: "center",
-            borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
-          }}>
-            <Ionicons name="checkmark-circle" size={20} color={charge > 0 ? "#F97316" : "#22C55E"} style={{ marginBottom: 4 }} />
-            <Text style={{ color: COLORS.white, fontWeight: "700", fontSize: 14 }}>
-              {charge > 0 ? `£${charge.toFixed(2)} will be added to fare` : "No waiting charge"}
-            </Text>
-            <Text style={{ color: COLORS.gray400, fontSize: 11, marginTop: 2 }}>
-              Waited {formatTime(elapsed)} total
-            </Text>
-          </View>
-        )}
-
-        {/* Action button */}
-        {running && (
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={stopWaiting}
-            disabled={isFreePhase}
-            style={{
-              backgroundColor: isFreePhase ? "rgba(255,255,255,0.06)" : "#EF4444",
-              paddingVertical: 15, borderRadius: 14,
-              flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
-              opacity: isFreePhase ? 0.6 : 1,
-              ...(isFreePhase ? {} : {
-                shadowColor: "#EF4444",
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 6,
-              }),
-            }}>
-            <Ionicons
-              name={isFreePhase ? "time-outline" : "person-outline"}
-              size={20}
-              color={isFreePhase ? COLORS.gray400 : COLORS.white}
-            />
-            <Text style={{
-              color: isFreePhase ? COLORS.gray400 : COLORS.white,
-              fontWeight: "700", fontSize: 15,
-            }}>
-              {isFreePhase ? `Available after ${formatTime(freeRemaining)}` : "Customer Arrived — Stop"}
-            </Text>
-          </TouchableOpacity>
-        )}
       </View>
+
+      {/* Stats — same layout as MeterCard */}
+      <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 16 }}>
+        <View style={{ alignItems: "center" }}>
+          <Ionicons name="time-outline" size={22} color={COLORS.gold} />
+          <Text style={{ color: COLORS.white, fontSize: 22, fontWeight: "800", marginTop: 4, fontVariant: ["tabular-nums"] }}>
+            {formatTime(elapsed)}
+          </Text>
+          <Text style={{ color: COLORS.gray400, fontSize: 10 }}>elapsed</Text>
+        </View>
+        <View style={{ alignItems: "center" }}>
+          <Ionicons name="cash-outline" size={22} color={charge > 0 ? "#F97316" : COLORS.gold} />
+          <Text style={{ color: charge > 0 ? "#F97316" : COLORS.white, fontSize: 22, fontWeight: "800", marginTop: 4 }}>
+            £{charge.toFixed(2)}
+          </Text>
+          <Text style={{ color: COLORS.gray400, fontSize: 10 }}>charge</Text>
+        </View>
+      </View>
+
+      {/* Progress bar — free phase */}
+      {isFreePhase && running && (
+        <View style={{ marginBottom: 12 }}>
+          <View style={{ height: 4, backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" }}>
+            <View style={{ height: "100%", backgroundColor: "#22C55E", borderRadius: 2, width: `${freeProgress * 100}%` }} />
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 4 }}>
+            <Text style={{ color: "#22C55E", fontSize: 10, fontWeight: "600" }}>Free waiting</Text>
+            <Text style={{ color: "#22C55E", fontSize: 10, fontWeight: "600" }}>{formatTime(freeRemaining)} left</Text>
+          </View>
+        </View>
+      )}
+
+      {/* Charging info */}
+      {!isFreePhase && running && (
+        <View style={{ backgroundColor: "rgba(249,115,22,0.1)", borderRadius: 10, padding: 8, marginBottom: 12, borderWidth: 1, borderColor: "rgba(249,115,22,0.2)" }}>
+          <Text style={{ color: "#F97316", fontSize: 11, fontWeight: "700", textAlign: "center" }}>
+            £0.50/min — {chargeableMinutes} {chargeableMinutes === 1 ? "min" : "mins"} charged
+          </Text>
+        </View>
+      )}
+
+      {/* Stopped summary */}
+      {!running && (
+        <View style={{ backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 10, padding: 10, marginBottom: 12 }}>
+          <Text style={{ color: COLORS.gray400, fontSize: 11, fontWeight: "600", textAlign: "center" }}>
+            {charge > 0 ? `£${charge.toFixed(2)} will be added to fare` : "No waiting charge"}
+          </Text>
+        </View>
+      )}
+
+      {/* Button — same style as MeterCard */}
+      {running && (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={stopWaiting}
+          disabled={isFreePhase}
+          style={{
+            backgroundColor: isFreePhase ? COLORS.gray500 : "#EF4444",
+            paddingVertical: 14, borderRadius: 12,
+            flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+            opacity: isFreePhase ? 0.4 : 1,
+          }}>
+          <Ionicons name={isFreePhase ? "time-outline" : "person-outline"} size={22} color={COLORS.white} />
+          <Text style={{ color: COLORS.white, fontWeight: "700", fontSize: 15 }}>
+            {isFreePhase ? `Available after ${formatTime(freeRemaining)}` : "Customer Arrived — Stop"}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

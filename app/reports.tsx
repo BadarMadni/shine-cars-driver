@@ -12,7 +12,7 @@ import ReportCard from "@/src/components/ReportCard";
 
 interface Booking {
   id: string; pickup: string; dropoff: string; date: string; time: string;
-  fare: number; meterFare?: number | null; fareType?: string; vehicle: string;
+  fare: number; meterFare?: number | null; cashCollected?: number | null; fareType?: string; vehicle: string;
   paymentMethod: string; paymentStatus: string; isRecurring?: boolean;
 }
 
@@ -68,9 +68,9 @@ export default function ReportsScreen() {
     });
   }, [bookings, filters]);
 
-  const totalEarnings = filtered.reduce((s, b) => s + (b.meterFare || b.fare), 0);
-  const cashEarnings = filtered.filter((b) => b.paymentMethod === "cash").reduce((s, b) => s + (b.meterFare || b.fare), 0);
-  const cardEarnings = filtered.filter((b) => b.paymentMethod === "card").reduce((s, b) => s + (b.meterFare || b.fare), 0);
+  const totalEarnings = filtered.reduce((s, b) => s + (b.cashCollected ?? b.meterFare ?? b.fare), 0);
+  const cashEarnings = filtered.filter((b) => b.paymentMethod === "cash").reduce((s, b) => s + (b.cashCollected ?? b.meterFare ?? b.fare), 0);
+  const cardEarnings = filtered.filter((b) => b.paymentMethod === "card").reduce((s, b) => s + (b.cashCollected ?? b.meterFare ?? b.fare), 0);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: COLORS.navy }}

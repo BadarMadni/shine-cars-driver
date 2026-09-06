@@ -15,7 +15,8 @@ interface Booking {
   pickup: string; dropoff: string; stops?: string | null;
   pickupDetails?: string | null; dropoffDetails?: string | null; buildingInfo?: string | null;
   date: string; time: string;
-  fare: number; status: string; vehicle: string;
+  fare: number; meterFare?: number | null; cashCollected?: number | null;
+  fareType?: string; status: string; vehicle: string;
   isRecurring?: boolean;
   isPriority?: boolean;
 }
@@ -161,7 +162,7 @@ export default function BookingsScreen() {
                 {b.dropoffDetails ? <Text style={{ color: COLORS.gold, fontSize: 10, fontStyle: "italic", marginLeft: 18, marginTop: -4 }}>{b.dropoffDetails}</Text> : null}
               </View>
               <View style={styles.cardFooter}>
-                <Text style={styles.fare}>£{b.fare.toFixed(2)}</Text>
+                <Text style={styles.fare}>£{(b.cashCollected ?? b.meterFare ?? b.fare).toFixed(2)}</Text>
                 <Text style={styles.vehicle}>{(b.vehicle || "car").toUpperCase()}</Text>
               </View>
             </TouchableOpacity>

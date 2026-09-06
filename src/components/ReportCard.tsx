@@ -10,6 +10,7 @@ interface Booking {
   time: string;
   fare: number;
   meterFare?: number | null;
+  cashCollected?: number | null;
   fareType?: string;
   vehicle: string;
   paymentMethod: string;
@@ -18,7 +19,7 @@ interface Booking {
 }
 
 export default function ReportCard({ booking: b }: { booking: Booking }) {
-  const finalFare = b.meterFare || b.fare;
+  const finalFare = b.cashCollected ?? b.meterFare ?? b.fare;
   const isPaid = b.paymentStatus === "paid";
 
   return (

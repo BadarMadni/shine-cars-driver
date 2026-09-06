@@ -19,7 +19,10 @@ interface Booking {
 function parseDate(dateStr: string): Date {
   // Handle DD/MM/YYYY format
   const parts = dateStr.split("/");
-  if (parts.length === 3) return new Date(+parts[2], +parts[1] - 1, +parts[0]);
+  if (parts.length === 3) return new Date(+parts[2], +parts[1] - 1, +parts[0], 12);
+  // YYYY-MM-DD — use noon to avoid timezone issues
+  const ymd = dateStr.split("-");
+  if (ymd.length === 3) return new Date(+ymd[0], +ymd[1] - 1, +ymd[2], 12);
   return new Date(dateStr);
 }
 
@@ -32,8 +35,11 @@ export default function ReportsScreen() {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+
   const [filters, setFilters] = useState<Filters>({
-    startDate: thirtyDaysAgo, endDate: new Date(),
+    startDate: thirtyDaysAgo, endDate: endOfToday,
     type: "all", payment: "all", status: "all",
   });
 

@@ -101,8 +101,9 @@ export default function BookingDetailScreen() {
 
   const stopMeter = useCallback(() => {
     locationSub.current?.remove(); locationSub.current = null; setMeterRunning(false);
-    if (meterFare > 0) setCashAmount(meterFare.toFixed(2));
-  }, [meterFare]);
+    const total = meterFare + waitingCharge;
+    if (total > 0) setCashAmount(total.toFixed(2));
+  }, [meterFare, waitingCharge]);
 
   const doUpdate = async (nextStatus: string, cash?: number, mDist?: number, mFare?: number, wCharge?: number) => {
     if (!booking) return;
@@ -180,7 +181,7 @@ export default function BookingDetailScreen() {
         )}
         {booking.fareType === "meter" && isInProgress && !isInvoice && (
           <MeterCard meterRunning={meterRunning} meterDistance={meterDistance}
-            meterFare={meterFare} onStart={startMeter} onStop={stopMeter} />
+            meterFare={meterFare} waitingCharge={waitingCharge} onStart={startMeter} onStop={stopMeter} />
         )}
         <NotesCard booking={booking} />
 
@@ -193,6 +194,7 @@ export default function BookingDetailScreen() {
         )}
         {isInProgress && isCash && !isInvoice && (
           <CashInputCard booking={booking} cashAmount={cashAmount} setCashAmount={setCashAmount}
+            waitingCharge={waitingCharge}
             onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300)} />
         )}
 

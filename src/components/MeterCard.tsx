@@ -3,8 +3,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/constants/theme";
 import styles from "@/src/styles/bookingDetail";
 
-export default function MeterCard({ meterRunning, meterDistance, meterFare, onStart, onStop }: {
+export default function MeterCard({ meterRunning, meterDistance, meterFare, waitingCharge = 0, onStart, onStop }: {
   meterRunning: boolean; meterDistance: number; meterFare: number;
+  waitingCharge?: number;
   onStart: () => void; onStop: () => void;
 }) {
   return (
@@ -29,7 +30,21 @@ export default function MeterCard({ meterRunning, meterDistance, meterFare, onSt
           <Text style={{ color: COLORS.white, fontSize: 22, fontWeight: "800", marginTop: 4 }}>£{meterFare.toFixed(2)}</Text>
           <Text style={{ color: COLORS.gray400, fontSize: 10 }}>fare</Text>
         </View>
+        {waitingCharge > 0 && (
+          <View style={{ alignItems: "center" }}>
+            <Ionicons name="time-outline" size={22} color="#F97316" />
+            <Text style={{ color: "#F97316", fontSize: 22, fontWeight: "800", marginTop: 4 }}>£{waitingCharge.toFixed(2)}</Text>
+            <Text style={{ color: COLORS.gray400, fontSize: 10 }}>waiting</Text>
+          </View>
+        )}
       </View>
+      {waitingCharge > 0 && (
+        <View style={{ backgroundColor: "rgba(249,115,22,0.1)", borderRadius: 10, padding: 8, marginBottom: 12, borderWidth: 1, borderColor: "rgba(249,115,22,0.2)" }}>
+          <Text style={{ color: "#F97316", fontSize: 13, fontWeight: "700", textAlign: "center" }}>
+            Total: £{(meterFare + waitingCharge).toFixed(2)}
+          </Text>
+        </View>
+      )}
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={meterRunning ? onStop : onStart}

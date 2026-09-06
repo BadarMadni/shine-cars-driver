@@ -158,10 +158,17 @@ export function NotesCard({ booking }: { booking: Booking }) {
   return (<View style={styles.card}><Text style={styles.cardTitle}>Notes from Dispatcher</Text><View style={styles.infoRow}><Ionicons name="document-text-outline" size={16} color={COLORS.gold} /><Text style={[styles.infoText, { flex: 1 }]}>{t}</Text></View></View>);
 }
 
-export function CashInputCard({ booking, cashAmount, setCashAmount, onFocus }: { booking: Booking; cashAmount: string; setCashAmount: (v: string) => void; onFocus?: () => void }) {
+export function CashInputCard({ booking, cashAmount, setCashAmount, waitingCharge = 0, onFocus }: { booking: Booking; cashAmount: string; setCashAmount: (v: string) => void; waitingCharge?: number; onFocus?: () => void }) {
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Cash Collected</Text>
+      {waitingCharge > 0 && (
+        <View style={{ backgroundColor: "rgba(249,115,22,0.1)", borderRadius: 10, padding: 10, marginBottom: 10, borderWidth: 1, borderColor: "rgba(249,115,22,0.2)" }}>
+          <Text style={{ color: "#F97316", fontSize: 12, fontWeight: "700", textAlign: "center" }}>
+            Includes £{waitingCharge.toFixed(2)} waiting charge
+          </Text>
+        </View>
+      )}
       <View style={styles.cashInputRow}>
         <Text style={styles.currencySign}>£</Text>
         <TextInput style={styles.cashInput} value={cashAmount} onChangeText={setCashAmount}

@@ -26,6 +26,7 @@ interface Booking {
   status: string; vehicle: string;
   paymentMethod?: string; paymentStatus?: string;
   fareType?: string; meterDistance?: number | null; meterFare?: number | null;
+  waitingSeconds?: number | null; waitingCharge?: number | null;
   isRecurring?: boolean;
   notes?: string | null;
 }
@@ -61,12 +62,17 @@ export default function BookingDetailScreen() {
   const lastPos = useRef<{ lat: number; lng: number } | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const [waitingCharge, setWaitingCharge] = useState(0);
+  const [waitingSeconds, setWaitingSeconds] = useState(0);
 
   const load = async () => {
     try {
       const [r1, r2, r3, r4] = await Promise.all([getBookings("active"), getBookings("assigned"), getBookings("completed"), getBookings("recurring")]);
       const found = [...(r1.bookings || []), ...(r2.bookings || []), ...(r3.bookings || []), ...(r4.bookings || [])].find((b: Booking) => b.id === id);
-      if (found) setBooking(found);
+      if (found) {
+        setBooking(found);
+        if (found.waitingSeconds) setWaitingSeconds(found.waitingSeconds);
+        if (found.waitingCharge) setWaitingCharge(found.waitingCharge);
+      }
     } catch {}
     setLoading(false);
   };
@@ -106,11 +112,11 @@ export default function BookingDetailScreen() {
     if (total > 0) setCashAmount(total.toFixed(2));
   }, [meterFare, waitingCharge]);
 
-  const doUpdate = async (nextStatus: string, cash?: number, mDist?: number, mFare?: number, wCharge?: number, ecNote?: string) => {
+  const doUpdate = async (nextStatus: string, cash?: number, mDist?: number, mFare?: number, wCharge?: number, ecNote?: string, wSecs?: number) => {
     if (!booking) return;
     setUpdating(true);
     try {
-      const res = await updateBookingStatus(booking.id, nextStatus, cash, mDist, mFare, wCharge, ecNote);
+      const res = await updateBookingStatus(booking.id, nextStatus, cash, mDist, mFare, wCharge, ecNote, wSecs);
       if (res.success) setBooking(res.booking ? { ...booking, ...res.booking } : { ...booking, status: nextStatus });
     } catch {}
     setUpdating(false);
@@ -119,8 +125,8 @@ export default function BookingDetailScreen() {
   const handleAction = async (nextStatus: string) => {
     if (!booking) return;
     if (nextStatus === "cancelled") { Alert.alert("Cancel Booking", "Are you sure?", [{ text: "No" }, { text: "Yes", style: "destructive", onPress: () => doUpdate(nextStatus) }]); return; }
-    if (nextStatus === "in-progress" && waitingCharge > 0) {
-      doUpdate(nextStatus, undefined, undefined, undefined, waitingCharge);
+    if (nextStatus === "in-progress" && (waitingCharge > 0 || waitingSeconds > 0)) {
+      doUpdate(nextStatus, undefined, undefined, undefined, waitingCharge, undefined, waitingSeconds);
       return;
     }
     doUpdate(nextStatus);
@@ -136,7 +142,7 @@ export default function BookingDetailScreen() {
     if (isCash && !cashAmount.trim()) { Alert.alert("Cash Amount", "Please enter the cash amount collected."); return; }
     const amount = isCash ? parseFloat(cashAmount) : undefined;
     if (isCash && (isNaN(amount!) || amount! <= 0)) { Alert.alert("Invalid Amount", "Please enter a valid amount."); return; }
-    doUpdate("completed", amount, isMeter ? meterDistance : undefined, isMeter ? meterFare : undefined, waitingCharge > 0 ? waitingCharge : undefined, extraChargeNote.trim() || undefined);
+    doUpdate("completed", amount, isMeter ? meterDistance : undefined, isMeter ? meterFare : undefined, waitingCharge > 0 ? waitingCharge : undefined, extraChargeNote.trim() || undefined, waitingSeconds > 0 ? waitingSeconds : undefined);
   };
 
   if (loading) return <View style={styles.center}><ActivityIndicator color={COLORS.gold} size="large" /></View>;
@@ -177,8 +183,13 @@ export default function BookingDetailScreen() {
         <TripCard booking={booking} currentStopIndex={currentStopIndex}
           onNextStop={() => setCurrentStopIndex((i) => i + 1)} />
         <RideInfoCard booking={booking} />
-        {booking.fareType === "meter" && booking.status === "arrived" && (
-          <WaitingTimeCard onChargeChange={setWaitingCharge} />
+        {booking.fareType === "meter" && (booking.status === "arrived" || booking.status === "in-progress") && (
+          <WaitingTimeCard
+            bookingId={booking.id}
+            journeyStarted={booking.status === "in-progress"}
+            initialSeconds={waitingSeconds}
+            onChargeChange={(c, s) => { setWaitingCharge(c); setWaitingSeconds(s); }}
+          />
         )}
         {booking.fareType === "meter" && isInProgress && !isInvoice && (
           <MeterCard meterRunning={meterRunning} meterDistance={meterDistance}

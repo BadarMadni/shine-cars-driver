@@ -75,11 +75,18 @@ export async function rejectRecurringTemplate(recurringId: string) {
 export async function updateBookingStatus(
   bookingId: string, status: string, cashCollected?: number,
   meterDistance?: number, meterFare?: number, waitingCharge?: number,
-  extraChargeNote?: string,
+  extraChargeNote?: string, waitingSeconds?: number,
 ) {
   return request("/api/drivers/bookings/status", {
     method: "PATCH",
-    body: JSON.stringify({ bookingId, status, cashCollected, meterDistance, meterFare, waitingCharge, extraChargeNote }),
+    body: JSON.stringify({ bookingId, status, cashCollected, meterDistance, meterFare, waitingCharge, waitingSeconds, extraChargeNote }),
+  });
+}
+
+export async function saveWaitingTime(bookingId: string, waitingSeconds: number, waitingCharge: number) {
+  return request("/api/drivers/bookings/waiting", {
+    method: "PATCH",
+    body: JSON.stringify({ bookingId, waitingSeconds, waitingCharge }),
   });
 }
 

@@ -23,16 +23,33 @@ export default function WaitingTimeCard({ bookingId, journeyStarted, initialSeco
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const saveTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Calculate charge based on accumulated total
-  const calcCharge = useCallback((secs: number) => {
-    const totalMinutes = Math.floor(secs / 60);
-    if (journeyStarted) {
-      // During journey: all time chargeable from first minute
-      return totalMinutes * CHARGE_PER_MIN;
+  // Track pre-journey seconds so they keep the 5-min free allowance after trip starts
+  const preJourneySecsRef = useRef(journeyStarted ? initialSeconds : 0);
+  const prevJourneyStarted = useRef(journeyStarted);
+
+  useEffect(() => {
+    if (journeyStarted && !prevJourneyStarted.current) {
+      // Journey just started — snapshot pre-journey waiting seconds
+      preJourneySecsRef.current = totalSeconds;
     }
-    // Before journey: first 5 minutes free
-    const chargeableMinutes = Math.max(0, totalMinutes - 5);
-    return chargeableMinutes * CHARGE_PER_MIN;
+    prevJourneyStarted.current = journeyStarted;
+  }, [journeyStarted, totalSeconds]);
+
+  // Calculate charge: pre-journey gets 5-min free, journey portion charged from min 1
+  const calcCharge = useCallback((secs: number) => {
+    if (!journeyStarted) {
+      // Before journey: first 5 minutes free
+      const totalMinutes = Math.floor(secs / 60);
+      return Math.max(0, totalMinutes - 5) * CHARGE_PER_MIN;
+    }
+    // During journey: split into pre-journey (with free allowance) + journey (no free)
+    const preSecs = preJourneySecsRef.current;
+    const preMinutes = Math.floor(preSecs / 60);
+    const preCharge = Math.max(0, preMinutes - 5) * CHARGE_PER_MIN;
+    const journeySecs = Math.max(0, secs - preSecs);
+    const journeyMinutes = Math.floor(journeySecs / 60);
+    const journeyCharge = journeyMinutes * CHARGE_PER_MIN;
+    return preCharge + journeyCharge;
   }, [journeyStarted]);
 
   const charge = calcCharge(totalSeconds);

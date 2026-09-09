@@ -8,7 +8,8 @@ const POLL_INTERVAL = 10_000;
 export interface NewBooking {
   id: string; name: string; pickup: string; dropoff: string;
   vehicle?: string; fare?: number; date?: string; time?: string;
-  fareType?: string; isRecurring?: boolean; days?: string;
+  fareType?: string; isRecurring?: boolean; isPriority?: boolean; days?: string;
+  pickupDetails?: string | null; dropoffDetails?: string | null; buildingInfo?: string | null;
 }
 
 export function useBookingPolling() {
@@ -43,9 +44,10 @@ export function useBookingPolling() {
           if (newBookings.length > 0 && !alertBooking) {
             setAlertBooking(newBookings[0]);
           }
-          newBookings.forEach((b) => {
-            if (b.time && b.date) scheduleBookingReminder(b.id, b.time, b.date, b.pickup);
-          });
+          // TEMP: disabled to debug iOS crash
+          // newBookings.forEach((b) => {
+          //   if (b.time && b.date) scheduleBookingReminder(b.id, b.time, b.date, b.pickup);
+          // });
         }
       }
 

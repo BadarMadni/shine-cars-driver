@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Modal, View, Text, TouchableOpacity, StyleSheet, Vibration,
+  Modal, View, Text, TouchableOpacity, StyleSheet, Vibration, Platform,
 } from "react-native";
 import { useAudioPlayer, AudioModule } from "expo-audio";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,38 +24,19 @@ interface Props {
 
 export default function BookingAlertModal({ booking, onAccept, onReject }: Props) {
   const [seconds, setSeconds] = useState(TIMER_SECONDS);
-  const player = useAudioPlayer(alertSound);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const loopRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const vibrationRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoRejectRef = useRef(false);
+
+  const player = useAudioPlayer(alertSound);
 
   const stopSound = () => {
     if (loopRef.current) { clearInterval(loopRef.current); loopRef.current = null; }
+    if (vibrationRef.current) { clearInterval(vibrationRef.current); vibrationRef.current = null; }
     try { player.pause(); player.seekTo(0); } catch {}
-    Vibration.cancel();
+    try { Vibration.cancel(); } catch {}
   };
-
-  const playLoop = async () => {
-    try { await AudioModule.setAudioModeAsync({ playsInSilentMode: true }); } catch {}
-    const playOnce = () => {
-      try { player.seekTo(0); player.play(); } catch {}
-    };
-    playOnce();
-    loopRef.current = setInterval(playOnce, 1800);
-    Vibration.vibrate([0, 500, 300, 500, 300, 500], true);
-  };
-
-  useEffect(() => {
-    if (!booking) return;
-    setSeconds(TIMER_SECONDS);
-    playLoop();
-    timerRef.current = setInterval(() => {
-      setSeconds((s) => {
-        if (s <= 1) { handleReject(); return 0; }
-        return s - 1;
-      });
-    }, 1000);
-    return () => cleanup();
-  }, [booking?.id]);
 
   const cleanup = () => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
@@ -64,6 +45,45 @@ export default function BookingAlertModal({ booking, onAccept, onReject }: Props
 
   const handleAccept = () => { cleanup(); if (booking) onAccept(booking.id); };
   const handleReject = () => { cleanup(); if (booking) onReject(booking.id); };
+
+  const playLoop = async () => {
+    try { await AudioModule.setAudioModeAsync({ playsInSilentMode: true }); } catch {}
+    const playOnce = () => {
+      try { player.seekTo(0); player.play(); } catch {}
+    };
+    playOnce();
+    loopRef.current = setInterval(playOnce, 1800);
+    // Vibrate
+    if (Platform.OS === "android") {
+      try { Vibration.vibrate([0, 500, 300, 500, 300, 500], true); } catch {}
+    } else {
+      try { Vibration.vibrate(); } catch {}
+      vibrationRef.current = setInterval(() => {
+        try { Vibration.vibrate(); } catch {}
+      }, 2000);
+    }
+  };
+
+  useEffect(() => {
+    if (!booking) return;
+    autoRejectRef.current = false;
+    setSeconds(TIMER_SECONDS);
+    playLoop();
+    timerRef.current = setInterval(() => {
+      setSeconds((s) => {
+        if (s <= 1) { autoRejectRef.current = true; return 0; }
+        return s - 1;
+      });
+    }, 1000);
+    return () => cleanup();
+  }, [booking?.id]);
+
+  useEffect(() => {
+    if (seconds === 0 && autoRejectRef.current) {
+      autoRejectRef.current = false;
+      handleReject();
+    }
+  }, [seconds]);
 
   if (!booking) return null;
 
@@ -106,7 +126,7 @@ export default function BookingAlertModal({ booking, onAccept, onReject }: Props
             <Text style={s.value} numberOfLines={2}>{booking.pickup}</Text>
           </View>
           {booking.pickupDetails ? <Text style={{ color: COLORS.gold, fontSize: 11, fontStyle: "italic", marginLeft: 89, marginTop: -6, marginBottom: 6 }}>{booking.pickupDetails}</Text> : null}
-          {booking.buildingInfo ? <Text style={{ color: "#F59E0B", fontSize: 11, fontStyle: "italic", marginLeft: 89, marginTop: -6, marginBottom: 6 }}>🏠 {booking.buildingInfo}</Text> : null}
+          {booking.buildingInfo ? <Text style={{ color: "#F59E0B", fontSize: 11, fontStyle: "italic", marginLeft: 89, marginTop: -6, marginBottom: 6 }}>{booking.buildingInfo}</Text> : null}
           <View style={s.row}>
             <Ionicons name="flag" size={16} color={COLORS.crimson} />
             <Text style={s.label}>Drop-off</Text>

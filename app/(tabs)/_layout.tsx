@@ -5,7 +5,7 @@ import { COLORS } from "@/src/constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBookingAlertCounts } from "@/src/context/BookingAlertContext";
 
-function TabIcon({ name, color, focused }: { name: keyof typeof Ionicons.glyphMap; color: string; focused: boolean }) {
+function TabIcon({ name, color, focused }: { name: keyof typeof Ionicons.glyphMap; color: string | import("react-native").ColorValue; focused: boolean }) {
   return (
     <View style={{
       alignItems: "center", justifyContent: "center",

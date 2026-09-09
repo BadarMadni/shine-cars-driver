@@ -35,7 +35,7 @@ export default function BookingAlertModal({ booking, onAccept, onReject }: Props
   };
 
   const playLoop = async () => {
-    try { await AudioModule.setAudioModeAsync({ playsInSilentModeIOS: true }); } catch {}
+    try { await AudioModule.setAudioModeAsync({ playsInSilentMode: true }); } catch {}
     const playOnce = () => {
       try { player.seekTo(0); player.play(); } catch {}
     };
@@ -115,7 +115,7 @@ export default function BookingAlertModal({ booking, onAccept, onReject }: Props
           {booking.dropoffDetails ? <Text style={{ color: COLORS.gold, fontSize: 11, fontStyle: "italic", marginLeft: 89, marginTop: -6, marginBottom: 6 }}>{booking.dropoffDetails}</Text> : null}
           {booking.vehicle && (
             <View style={s.row}>
-              <Ionicons name="car" size={16} color={COLORS.blue} />
+              <Ionicons name="car" size={16} color="#3B82F6" />
               <Text style={s.label}>Vehicle</Text>
               <Text style={s.value}>{booking.vehicle}</Text>
             </View>

@@ -12,7 +12,7 @@ const SUNDAY_RATES = {
 
 type Vehicle = "car" | "mpv";
 
-function calcNormal(dist: number, r: typeof RATES.car): number {
+function calcNormal(dist: number, r: (typeof RATES)[Vehicle]): number {
   if (dist <= r.baseMiles) return r.base;
   if (dist <= r.midLimit) return r.base + (dist - r.baseMiles) * r.midRate;
   const mid = (r.midLimit - r.baseMiles) * r.midRate;

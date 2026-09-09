@@ -13,7 +13,7 @@ import ReportCard from "@/src/components/ReportCard";
 interface Booking {
   id: string; pickup: string; dropoff: string; date: string; time: string;
   fare: number; meterFare?: number | null; cashCollected?: number | null; fareType?: string; vehicle: string;
-  paymentMethod: string; paymentStatus: string; isRecurring?: boolean;
+  paymentMethod: string; paymentStatus: string; status?: string; isRecurring?: boolean;
 }
 
 function parseDate(dateStr: string): Date {

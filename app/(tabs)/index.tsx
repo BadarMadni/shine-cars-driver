@@ -29,6 +29,8 @@ export default function DashboardScreen() {
   const [todayJobs, setTodayJobs] = useState(0);
   const [totalJobs, setTotalJobs] = useState(0);
   const [earnings, setEarnings] = useState(0);
+  const [systemOpen, setSystemOpen] = useState(true);
+  const [reopeningTime, setReopeningTime] = useState("08:00");
 
   useLocationTracking(available);
   useKeepAwake();
@@ -62,6 +64,8 @@ export default function DashboardScreen() {
   useEffect(() => {
     load();
     requestPermissions();
+    fetch("https://shine-cars-dispatch.vercel.app/api/settings/system-status")
+      .then((r) => r.json()).then((d) => { setSystemOpen(d.open); setReopeningTime(d.reopeningTime || "08:00"); }).catch(() => {});
   }, []);
 
   const requestPermissions = async () => {
@@ -109,6 +113,17 @@ export default function DashboardScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scroll}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.gold} />}>
+
+      {/* System Closed Banner */}
+      {!systemOpen && (
+        <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FECACA", borderRadius: 14, padding: 14, marginBottom: 12 }}>
+          <Ionicons name="alert-circle" size={20} color="#DC2626" />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={{ color: "#DC2626", fontSize: 14, fontWeight: "700" }}>System Currently Closed</Text>
+            <Text style={{ color: "#EF4444", fontSize: 12, marginTop: 2, opacity: 0.8 }}>Reopening at {reopeningTime}. No new bookings until then.</Text>
+          </View>
+        </View>
+      )}
 
       {/* Header */}
       <View style={styles.header}>
